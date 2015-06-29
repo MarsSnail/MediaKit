@@ -1,0 +1,48 @@
+/*
+ * videoDecoder.cpp
+ *
+ *  Created on: 2013-9-6
+ *      Author: lxn
+ */
+
+#include "VideoDecoder.h"
+#include <iostream>
+#include "SnailSleep.h"
+
+namespace snail{
+namespace media{
+VideoDecoder::VideoDecoder(MediaParser *mediaParser):
+		_mediaParser(mediaParser),
+		_videoDecoderThread(0),
+		_killThreadFlag(false)
+{}
+
+VideoDecoder::~VideoDecoder(){
+}
+void VideoDecoder::startVideoDecoderThread(){
+	_videoDecoderThread.reset(new boost::thread(
+			boost::bind(decoderLoopStarter,this)));
+}
+
+void VideoDecoder::decoderLoopStarter(VideoDecoder *videoDecoder){
+	videoDecoder->decoderLoop();
+}
+
+void VideoDecoder::decoderLoop(){
+	while(continueRunThread()){
+		decodeVideoFrame();
+		//snail::timer::snailSleep(100);
+	}
+}
+
+bool VideoDecoder::continueRunThread(){
+	boost::mutex::scoped_lock lock(_stopThreadMutex);
+	return !_killThreadFlag;
+}
+void VideoDecoder::setKillThread(){
+	boost::mutex::scoped_lock lock(_stopThreadMutex);
+	_killThreadFlag = true;
+}
+}//namespace snail
+}//namespace media
+

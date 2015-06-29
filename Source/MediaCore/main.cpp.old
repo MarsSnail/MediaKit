@@ -1,0 +1,843 @@
+/*
+ * Copyright (C) 2013, 2014 Mark Li (lixiaonan06@163.com)
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Library General Public License for more details.
+ *
+ * You should have received a copy of the GNU Library General Public License
+ * along with this library; see the file COPYING.LIB.  If not, write to
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301, USA.
+ *
+ */
+ 
+#include "Url.h"
+#include "InputStreamProvider.h"
+#include <iostream>
+#include "MediaParserFFmpeg.h"
+#include "VideoDecoderFFmpeg.h"
+#include "SnailPlayer.h"
+using namespace std;
+using namespace snail;
+using namespace snail::netWork;
+using namespace snail::media;
+/*
+int main(int argc, char **argv){
+	snail::netWork::Url tmpUrl("file:///var/www/jmyp.mp4");
+	InputStreamProvider streamProvider(tmpUrl);
+	auto_ptr<IOChannel> inStream = streamProvider.getStream();
+	MediaParserFFmpeg mp(inStream);
+	VideoDecoderFFmpeg vd(&mp);
+	while(1){
+		sleep(1);
+		mp.nextAudioEncodedFrame();
+		av_free(vd.popDecodedVideoFrame());
+		//mp.nextVideoEncodedFrame();
+	}
+	cout<<tmpUrl<<endl;
+	SnailPlayer player;
+	player.startPlayback("file:///var/www/jmyp.mp4");
+	while(1){
+		player.beginDisplay();
+	}
+
+	return 1;
+}
+*/
+
+#include<stdlib.h>
+#include<string.h>
+#include<sys/stat.h>
+#include<unistd.h>
+#include<fcntl.h>
+
+#include<X11/Xlib.h>
+#include<X11/keysym.h>
+
+#include<GL/gl.h>
+#include<GL/glx.h>
+#include<GL/glext.h>
+#include<GL/glu.h>
+#include<GL/glxext.h>
+
+//added by lxn 2013.05.15
+
+#include "ClockTime.h"
+#include <iostream>
+#include <string>
+
+//end
+
+enum
+{
+    WmProtocols = 0,
+    WmDeleteWindow,
+    NumAtoms
+};
+
+Display* pDisp;
+Window win;
+GLXContext ctx;
+Atom Atoms[NumAtoms];
+XVisualInfo* pvis;
+XEvent xev;
+
+int Width = 1024;
+int Height = 768;
+
+
+typedef struct
+{
+   // Handle to a program object
+   GLuint programObject;
+
+   GLint positionLoc;
+
+   GLint texCoordLoc;
+
+   GLint texLoc;
+
+   GLuint texId;
+
+} UserData;
+
+
+UserData userData0;
+UserData *userData = &userData0;
+
+#include <stdio.h>
+//#include<io.h>   //C����ͷ�ļ�
+#include<iostream>   //for system();
+
+
+//just for test added by lxn 20131112
+#include "rgb2bmp.h"
+int rgb2bmp(unsigned char *rgb_buffer,int nWidth,int nHeight,FILE*fp1)
+{
+     BmpHead m_BMPHeader;
+     char bfType[2]={'B','M'};
+     m_BMPHeader.imageSize=3*nWidth*nHeight+54;
+     m_BMPHeader.blank=0;
+     m_BMPHeader.startPosition=54;
+
+     fwrite(bfType,1,sizeof(bfType),fp1);
+     fwrite(&m_BMPHeader.imageSize,1,sizeof(m_BMPHeader.imageSize),fp1);
+     fwrite(&m_BMPHeader.blank,1,sizeof(m_BMPHeader.blank),fp1);
+     fwrite(&m_BMPHeader.startPosition,1,sizeof(m_BMPHeader.startPosition),fp1);
+
+     InfoHead  m_BMPInfoHeader;
+     m_BMPInfoHeader.Length=40;
+     m_BMPInfoHeader.width=nWidth;
+     m_BMPInfoHeader.height=nHeight;
+     m_BMPInfoHeader.colorPlane=1;
+     m_BMPInfoHeader.bitColor=24;
+     m_BMPInfoHeader.zipFormat=0;
+     m_BMPInfoHeader.realSize=3*nWidth*nHeight;
+     m_BMPInfoHeader.xPels=0;
+     m_BMPInfoHeader.yPels=0;
+     m_BMPInfoHeader.colorUse=0;
+     m_BMPInfoHeader.colorImportant=0;
+
+     fwrite(&m_BMPInfoHeader.Length,1,sizeof(m_BMPInfoHeader.Length),fp1);
+     fwrite(&m_BMPInfoHeader.width,1,sizeof(m_BMPInfoHeader.width),fp1);
+     fwrite(&m_BMPInfoHeader.height,1,sizeof(m_BMPInfoHeader.height),fp1);
+     fwrite(&m_BMPInfoHeader.colorPlane,1,sizeof(m_BMPInfoHeader.colorPlane),fp1);
+     fwrite(&m_BMPInfoHeader.bitColor,1,sizeof(m_BMPInfoHeader.bitColor),fp1);
+     fwrite(&m_BMPInfoHeader.zipFormat,1,sizeof(m_BMPInfoHeader.zipFormat),fp1);
+     fwrite(&m_BMPInfoHeader.realSize,1,sizeof(m_BMPInfoHeader.realSize),fp1);
+     fwrite(&m_BMPInfoHeader.xPels,1,sizeof(m_BMPInfoHeader.xPels),fp1);
+     fwrite(&m_BMPInfoHeader.yPels,1,sizeof(m_BMPInfoHeader.yPels),fp1);
+     fwrite(&m_BMPInfoHeader.colorUse,1,sizeof(m_BMPInfoHeader.colorUse),fp1);
+     fwrite(&m_BMPInfoHeader.colorImportant,1,sizeof(m_BMPInfoHeader.colorImportant),fp1);
+     fwrite(rgb_buffer,3*nWidth*nHeight,1,fp1);
+     return 0;
+}
+
+//end
+unsigned char * readRGB(char *path)
+{
+
+	FILE *fp;
+	unsigned char * buffer;
+	long size = 256 * 256 * 3 ;
+
+	if((fp=fopen(path,"rb"))==NULL)
+	{
+	   printf("cant open the file");
+	   exit(0);
+	}
+	//if (fp)
+	//{
+	// size = filelength(fileno(fp));
+	//
+	//}
+	buffer = new unsigned char[size];
+	memset(buffer,'\0',size);
+	fread(buffer,size,1,fp);
+	fclose(fp);
+	return buffer;
+
+
+}
+
+
+GLuint texId;
+
+//added by lxn 2013.05.15
+std::string tmpUrl("http://f.youku.com/player/getFlvPath/sid/138140115325012507474_00/st/flv/fileid/03000207005231A0285F070014D61BE86D7D33-B845-582E-F8BF-0CFFADA05D07?K=e1b3d999d6e66c212828fcdc&hd=0&myp=0&ts=369&ymovie=1");//("http://172.17.109.19/03000207014FA90A59637203BAF2B13D7EFF54-5066-2DD1-47F9-B3F6E2AEEC6C.flv ");//http://172.17.109.23/news.flv
+//std::string tmpUrl("http://f.youku.com/player/getFlvPath/sid/136938292982518266849_00/st/flv/fileid/03000201004FAB41EEA2AE04E9D2A715B26289-2595-0DBE-F179-525354D3A536?start=0&K=f7519034ea7028f0241169a0&hd=0&myp=0&ts=41");//("http://118.228.16.45/youku/657351B8D694283B614F642513/0300020100516E4D824D1B003E8803D59CFF44-5A6F-1902-D13C-810993F55484.flv");//("http://118.228.16.45/youku/6572C5F086B3E837B9D84B52FB/0300020100519361511EEF003E88034F25CC78-57D7-7058-B0ED-9C551BB67CD8.flv");// "http://172.17.109.23/news.flv");
+SnailPlayer gPlayer;
+//std::string tmpUrl2("file:///home/lxn/shared/news.mp4");
+//snail::snailPlayer gPlayer2(tmpUrl2);
+std::auto_ptr<VideoImage> showImage;
+bool firstOver = false;
+//end
+void loadRGB(){
+
+
+}
+
+
+
+
+PFNGLGENERATEMIPMAPEXTPROC p_glGenerateMipmapEXT;
+PFNGLFRAMEBUFFERTEXTURE2DEXTPROC p_glFramebufferTexture2DEXT;
+PFNGLMAPBUFFERPROC p_glMapBuffer;
+PFNGLGENBUFFERSPROC p_glGenBuffers;
+PFNGLCREATESHADERPROC p_glCreateShader;
+PFNGLBUFFERDATAPROC p_glBufferData;
+PFNGLCOMPRESSEDTEXIMAGE2DPROC p_glCompressedTexImage2D;
+PFNGLLINKPROGRAMPROC p_glLinkProgram;
+PFNGLACTIVETEXTUREPROC p_glActiveTexture;
+PFNGLGETPROGRAMIVPROC p_glGetProgramiv;
+PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC p_glCheckFramebufferStatusEXT;
+PFNGLUNIFORM1FVPROC p_glUniform1fv;
+PFNGLBLENDEQUATIONPROC p_glBlendEquation;
+PFNGLDISABLEVERTEXATTRIBARRAYPROC p_glDisableVertexAttribArray;
+PFNGLBINDATTRIBLOCATIONPROC p_glBindAttribLocation;
+PFNGLCOMPILESHADERPROC p_glCompileShader;
+PFNGLATTACHSHADERPROC p_glAttachShader;
+PFNGLGETATTRIBLOCATIONPROC p_glGetAttribLocation;
+PFNGLBLENDFUNCSEPARATEPROC p_glBlendFuncSeparate;
+PFNGLGENFRAMEBUFFERSEXTPROC p_glGenFramebuffersEXT;
+PFNGLUNIFORM1IPROC p_glUniform1i;
+PFNGLDELETERENDERBUFFERSEXTPROC p_glDeleteRenderbuffersEXT;
+PFNGLGETSHADERIVPROC p_glGetShaderiv;
+PFNGLDELETEPROGRAMPROC p_glDeleteProgram;
+PFNGLDELETEFRAMEBUFFERSEXTPROC p_glDeleteFramebuffersEXT;
+PFNGLBINDFRAMEBUFFEREXTPROC p_glBindFramebufferEXT;
+PFNGLCREATEPROGRAMPROC p_glCreateProgram;
+PFNGLUSEPROGRAMPROC p_glUseProgram;
+PFNGLBINDRENDERBUFFEREXTPROC p_glBindRenderbufferEXT;
+PFNGLDELETESHADERPROC p_glDeleteShader;
+PFNGLGETPROGRAMINFOLOGPROC p_glGetProgramInfoLog;
+PFNGLDELETEBUFFERSPROC p_glDeleteBuffers;
+PFNGLGENRENDERBUFFERSEXTPROC p_glGenRenderbuffersEXT;
+PFNGLRENDERBUFFERSTORAGEEXTPROC p_glRenderbufferStorageEXT;
+PFNGLSHADERSOURCEPROC p_glShaderSource;
+PFNGLBINDBUFFERPROC p_glBindBuffer;
+PFNGLGETSHADERINFOLOGPROC p_glGetShaderInfoLog;
+PFNGLUNIFORM4FVPROC p_glUniform4fv;
+PFNGLENABLEVERTEXATTRIBARRAYPROC p_glEnableVertexAttribArray;
+PFNGLUNIFORMMATRIX4FVPROC p_glUniformMatrix4fv;
+PFNGLUNMAPBUFFERPROC p_glUnmapBuffer;
+PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC p_glFramebufferRenderbufferEXT;
+PFNGLVERTEXATTRIBPOINTERPROC p_glVertexAttribPointer;
+PFNGLGETUNIFORMLOCATIONPROC p_glGetUniformLocation;
+PFNGLUNIFORM2FVPROC p_glUniform2fv;
+PFNGLUNIFORM3FVPROC p_glUniform3fv;
+
+
+#define glGenerateMipmapEXT p_glGenerateMipmapEXT
+#define glFramebufferTexture2DEXT p_glFramebufferTexture2DEXT
+#define glMapBuffer p_glMapBuffer
+#define glGenBuffers p_glGenBuffers
+#define glCreateShader p_glCreateShader
+#define glBufferData p_glBufferData
+#define glCompressedTexImage2D p_glCompressedTexImage2D
+#define glLinkProgram p_glLinkProgram
+#define glActiveTexture p_glActiveTexture
+#define glGetProgramiv p_glGetProgramiv
+#define glCheckFramebufferStatusEXT p_glCheckFramebufferStatusEXT
+#define glUniform1fv p_glUniform1fv
+#define glBlendEquation p_glBlendEquation
+#define glDisableVertexAttribArray p_glDisableVertexAttribArray
+#define glBindAttribLocation p_glBindAttribLocation
+#define glCompileShader p_glCompileShader
+#define glAttachShader p_glAttachShader
+#define glGetAttribLocation p_glGetAttribLocation
+#define glBlendFuncSeparate p_glBlendFuncSeparate
+#define glGenFramebuffersEXT p_glGenFramebuffersEXT
+#define glUniform1i p_glUniform1i
+#define glDeleteRenderbuffersEXT p_glDeleteRenderbuffersEXT
+#define glGetShaderiv p_glGetShaderiv
+#define glDeleteProgram p_glDeleteProgram
+#define glDeleteFramebuffersEXT p_glDeleteFramebuffersEXT
+#define glBindFramebufferEXT p_glBindFramebufferEXT
+#define glCreateProgram p_glCreateProgram
+#define glUseProgram p_glUseProgram
+#define glBindRenderbufferEXT p_glBindRenderbufferEXT
+#define glDeleteShader p_glDeleteShader
+#define glGetProgramInfoLog p_glGetProgramInfoLog
+#define glDeleteBuffers p_glDeleteBuffers
+#define glGenRenderbuffersEXT p_glGenRenderbuffersEXT
+#define glRenderbufferStorageEXT p_glRenderbufferStorageEXT
+#define glShaderSource p_glShaderSource
+#define glBindBuffer p_glBindBuffer
+#define glGetShaderInfoLog p_glGetShaderInfoLog
+#define glUniform4fv p_glUniform4fv
+#define glEnableVertexAttribArray p_glEnableVertexAttribArray
+#define glUniformMatrix4fv p_glUniformMatrix4fv
+#define glUnmapBuffer p_glUnmapBuffer
+#define glFramebufferRenderbufferEXT p_glFramebufferRenderbufferEXT
+#define glVertexAttribPointer p_glVertexAttribPointer
+#define glGetUniformLocation p_glGetUniformLocation
+#define glUniform2fv p_glUniform2fv
+#define glUniform3fv p_glUniform3fv
+
+
+
+
+///
+// Create a shader object, load the shader source, and
+// compile the shader.
+//
+GLuint LoadShader ( GLenum type, const char *shaderSrc )
+{
+
+   p_glCreateShader = (PFNGLCREATESHADERPROC)glXGetProcAddressARB((const GLubyte*)"glCreateShader");
+   p_glShaderSource = (PFNGLSHADERSOURCEPROC)glXGetProcAddressARB((const GLubyte*)"glShaderSource");
+   p_glCompileShader = (PFNGLCOMPILESHADERPROC)glXGetProcAddressARB((const GLubyte*)"glCompileShader");
+   p_glGetShaderiv = (PFNGLGETSHADERIVPROC)glXGetProcAddressARB((const GLubyte*)"glGetShaderiv");
+   p_glGetShaderInfoLog = (PFNGLGETSHADERINFOLOGPROC)glXGetProcAddressARB((const GLubyte*)"glGetShaderInfoLog");
+   p_glDeleteShader = (PFNGLDELETESHADERPROC)glXGetProcAddressARB((const GLubyte*)"glDeleteShader");
+
+
+
+   GLuint shader;
+   GLint compiled;
+
+   // Create the shader object
+   shader = glCreateShader ( type );
+   if ( shader == 0 )
+   {	printf("shader is error\n");
+        return 0;
+   }
+   else
+	printf("shader is ok\n");
+
+   // Load the shader source
+   glShaderSource ( shader, 1, &shaderSrc, NULL );
+
+   // Compile the shader
+   glCompileShader ( shader );
+
+   // Check the compile status
+   glGetShaderiv ( shader, GL_COMPILE_STATUS, &compiled );
+
+   if ( !compiled )
+   {
+      GLint infoLen = 0;
+
+      glGetShaderiv ( shader, GL_INFO_LOG_LENGTH, &infoLen );
+
+      if ( infoLen > 1 )
+      {
+         char* infoLog = (char*)malloc (sizeof(char) * infoLen );
+
+         glGetShaderInfoLog ( shader, infoLen, NULL, infoLog );
+         printf ( "Error compiling shader:\n%s\n", infoLog );
+
+         free ( infoLog );
+      }
+
+      glDeleteShader ( shader );
+      return 0;
+   }
+   printf("Shader compiled ok\n");
+
+   return shader;
+}
+
+
+///
+// Initialize the shader and program object
+//
+int Init ()
+{
+   p_glCreateProgram = (PFNGLCREATEPROGRAMPROC)glXGetProcAddressARB((const GLubyte*)"glCreateProgram");
+   p_glAttachShader = (PFNGLATTACHSHADERPROC)glXGetProcAddressARB((const GLubyte*)"glAttachShader");
+   p_glLinkProgram = (PFNGLLINKPROGRAMPROC)glXGetProcAddressARB((const GLubyte*)"glLinkProgram");
+   p_glGetProgramiv = (PFNGLGETPROGRAMIVPROC)glXGetProcAddressARB((const GLubyte*)"glGetProgramiv");
+   p_glGetProgramInfoLog = (PFNGLGETPROGRAMINFOLOGPROC)glXGetProcAddressARB((const GLubyte*)"glGetProgramInfoLog");
+   p_glDeleteProgram = (PFNGLDELETEPROGRAMPROC)glXGetProcAddressARB((const GLubyte*)"glDeleteProgram");
+   p_glGetAttribLocation = (PFNGLGETATTRIBLOCATIONPROC)glXGetProcAddressARB((const GLubyte*)"glGetAttribLocation");
+   p_glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)glXGetProcAddressARB((const GLubyte*)"glGetUniformLocation");
+
+
+
+   GLbyte vShaderStr[] =
+      "attribute vec4 vPosition;    \n"
+	  "attribute vec2 a_texCoord;	\n"
+	  "varying vec2 tc;		\n"
+      "void main()                  \n"
+      "{                            \n"
+      "   gl_Position = vPosition;  \n"
+	  "	  tc = a_texCoord;	\n"
+      "}                            \n";
+
+   GLbyte fShaderStr[] =
+	"uniform sampler2D tex_RGB;\n"
+	"varying vec2 tc;\n"
+	"void main()\n"
+	"{\n"
+	"	gl_FragColor = texture2D(tex_RGB, tc);\n"
+	"}\n";
+
+
+   GLuint vertexShader;
+   GLuint fragmentShader;
+   GLuint programObject;
+   GLint linked;
+
+   // Load the vertex/fragment shaders
+   vertexShader = LoadShader ( GL_VERTEX_SHADER, (const char *)vShaderStr );
+   fragmentShader = LoadShader ( GL_FRAGMENT_SHADER, (const char *)fShaderStr );
+
+   // Create the program object
+   programObject = glCreateProgram ( );
+
+   if ( programObject == 0 )
+   {
+      printf("glCreateProgram is error\n");
+      return 0;
+   }
+   else
+      printf("glCreateProgram is ok\n");
+
+   glAttachShader ( programObject, vertexShader );
+   glAttachShader ( programObject, fragmentShader );
+
+   // Link the program
+   glLinkProgram ( programObject );
+
+   // Check the link status
+   glGetProgramiv ( programObject, GL_LINK_STATUS, &linked );
+
+   if ( !linked )
+   {
+      GLint infoLen = 0;
+
+      glGetProgramiv ( programObject, GL_INFO_LOG_LENGTH, &infoLen );
+
+      if ( infoLen > 1 )
+      {
+         char* infoLog = (char* )malloc (sizeof(char) * infoLen );
+
+         glGetProgramInfoLog ( programObject, infoLen, NULL, infoLog );
+         printf ( "Error linking program:\n%s\n", infoLog );
+
+         free ( infoLog );
+      }
+
+      glDeleteProgram ( programObject );
+      return 0;
+   }
+   printf("program linked ok\n");
+
+   // Store the program object
+   userData->programObject = programObject;
+
+   userData->positionLoc = glGetAttribLocation(userData->programObject, "vPosition");
+
+   userData->texCoordLoc = glGetAttribLocation(userData->programObject, "a_texCoord");
+
+   userData->texLoc = glGetUniformLocation(userData->programObject, "tex_RGB");
+
+
+
+
+   loadRGB();
+   printf("RGB data load is ok;\n");
+
+   glClearColor ( 0.0f, 0.0f, 0.0f, 0.0f );
+   return 1;
+}
+
+///
+// Draw a triangle using the shader pair created in Init()
+//
+uint64_t pre=0,cur=0;
+FILE *fImage;
+void Draw ()
+{
+#if 1
+   p_glUseProgram = (PFNGLUSEPROGRAMPROC)glXGetProcAddressARB((const GLubyte*)"glUseProgram");
+   p_glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC)glXGetProcAddressARB((const GLubyte*)"glVertexAttribPointer");
+   p_glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)glXGetProcAddressARB((const GLubyte*)"glEnableVertexAttribArray");
+   p_glUniform4fv = (PFNGLUNIFORM4FVPROC)glXGetProcAddressARB((const GLubyte*)"glUniform4fv");
+
+   p_glActiveTexture = (PFNGLACTIVETEXTUREPROC)glXGetProcAddressARB((const GLubyte*)"glActiveTexture");
+   p_glUniform1i = (PFNGLUNIFORM1IPROC)glXGetProcAddressARB((const GLubyte*)"glUniform1i");
+
+   GLfloat vVertices[] = { -1.0f, -1.0f, 0.0f,	//position 0
+							0.0f,  1.0f,		//texcoor 0
+                           -1.0f,  1.0f, 0.0f,	//position 1
+						    0.0f,  0.0f,		//texcoor 1
+						    1.0f,  1.0f, 0.0f,	//position 2
+							1.0f,  0.0f,			//texcoor 2
+							1.0f, -1.0f, 0.0f,	//position 3
+							1.0f,  1.0f			//texcoor 3
+						 };
+
+   GLushort indices[] = {0, 1, 2, 0, 2, 3};
+   // Set the viewport
+   //glViewport ( 0, 0, esContext->width, esContext->height );
+
+   // Clear the color buffer
+   glClear ( GL_COLOR_BUFFER_BIT );
+
+   // Use the program object
+   glUseProgram ( userData->programObject );
+
+   // Load the vertex data
+   glVertexAttribPointer ( userData->positionLoc, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), vVertices );
+   glEnableVertexAttribArray ( userData->positionLoc );
+
+   glVertexAttribPointer(userData->texCoordLoc, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), &vVertices[3]);
+   glEnableVertexAttribArray(userData->texCoordLoc);
+
+   userData->texId = texId;
+
+   glActiveTexture(GL_TEXTURE0);
+   glBindTexture(GL_TEXTURE_2D, userData->texId);
+
+//added by lxn 2013.05.17
+#endif
+	static bool first=1;
+	int width ;
+	int height ;
+
+		showImage = gPlayer.getDecodedFrame(); //type gnash::image::GnashImage
+	int static storeImageFlag = 0;
+	if(storeImageFlag==0){
+		fImage = fopen("./bmp","wb");
+		if(!fImage){
+			cout<<"open the test.bitmap failed"<<endl;
+		}
+	}
+	if(showImage.get()){
+		width = showImage->_w;
+		height = showImage->_h;
+	   	unsigned char* buffer = showImage->_data; // get the address of the decoded frame (type unsigned char *)
+	    //printf("pts = %d\n",showImage->_pts);
+	    pre = cur;
+	    cur = snail::timer::getTicks();
+	    //printf("time ticks = %d\n",cur-pre);
+	    if(storeImageFlag==0){
+	    	rgb2bmp(buffer, width, height,fImage);
+	    	storeImageFlag = 1;
+	    	fclose(fImage);
+	    }
+		if(first)
+		{	first = false;
+			glGenTextures ( 1, &texId );
+   			glBindTexture ( GL_TEXTURE_2D, texId );
+  			glTexImage2D ( GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer );
+   			glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+   			glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+   			glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+   			glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+		}
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+	}
+	else
+	{
+		//printf("not get frame\n");
+	}
+#if 1
+
+   glUniform1i(userData->texLoc, 0);
+
+   glDrawElements ( GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, indices );
+#endif
+}
+
+int SetupWindow()
+{
+
+    char *atoms[] = {"WM_PROTOCOLS", "WM_DELETE_WINDOW"};
+    int attr[] = {GLX_RGBA, GLX_DOUBLEBUFFER,
+                      GLX_STENCIL_SIZE, 8,
+                      GLX_DEPTH_SIZE, 16,
+                      0};
+    XSetWindowAttributes winattr;
+    XSizeHints size;
+
+    if (!pDisp)
+    {
+        pDisp = XOpenDisplay(0);
+        if (!pDisp)
+        {
+            printf("Cannot open display: %s\n", XDisplayName(0));
+            return 0;
+        }
+
+        XInternAtoms(pDisp, atoms, NumAtoms, 0, Atoms);
+    }
+
+    if (!ctx)
+    {
+
+        pvis = glXChooseVisual(pDisp, DefaultScreen(pDisp), attr);
+
+        if (!pvis)
+        {
+            printf("glXChooseVisual failed\n");
+            return 0;
+        }
+        ctx = glXCreateContext(pDisp, pvis, 0, 1);
+    }
+
+    winattr.event_mask = ButtonPressMask|ButtonReleaseMask|KeyPressMask|
+    											KeyReleaseMask|ButtonMotionMask|PointerMotionMask|
+    											PointerMotionHintMask|StructureNotifyMask;
+    winattr.border_pixel = 0;
+    winattr.colormap = XCreateColormap(pDisp, DefaultRootWindow(pDisp), pvis->visual, AllocNone);
+
+    win = XCreateWindow(pDisp, DefaultRootWindow(pDisp), 100,100, Width, Height, 0, pvis->depth,
+        InputOutput, pvis->visual, CWEventMask | CWBorderPixel | CWColormap, &winattr);
+
+    XStoreName(pDisp, win, "FXPLAYER_APP_TITLE");
+    XSetWMProtocols(pDisp, win, &Atoms[WmDeleteWindow], 1);
+
+    size.flags = PSize|PMinSize|PMaxSize;
+    size.x = size.y = 100;
+    size.width = size.min_width = size.max_width = Width;
+    size.height = size.min_height = size.max_height = Height;
+    XSetNormalHints(pDisp, win, &size);
+
+    XMapRaised(pDisp, win);
+
+    glXMakeCurrent(pDisp, win, ctx);
+
+    glDisable(GL_LINE_SMOOTH);
+    glLineWidth(1.0f);
+
+    return 1;
+}
+static const int mousebuttons[5] = {0, 2, 1, 3, 4};
+int exitApp = 0;
+pthread_t seekThread;
+pthread_attr_t seekAttr;
+int seekTime;
+void *seekTask(void *ptr){
+	int *time = (int *)ptr;
+	gPlayer.seek(*time);
+	pthread_exit(NULL);
+}
+
+//appendBytes
+pthread_t appendBytesThread;
+pthread_attr_t appendAttr;
+FILE *fp;
+void *appendTask(void *ptr){
+	SnailPlayer *sp = (SnailPlayer*)ptr;
+	fp = fopen("/home/lxn/shared/tt.flv","r");
+	unsigned char * tmpBuffer = (unsigned char*)malloc(2048 *sizeof(unsigned char));
+	memset(tmpBuffer, 0, 2048);
+	if(!fp){
+		cout<<"open the file /home/lxn/shared/tt.flv failed"<<endl;
+		return NULL;
+	}
+	bool res = true;
+	int cnt;
+	while(1){
+		if(res)
+			cnt = fread(tmpBuffer,1, 2048,fp);
+		res = sp->appendBytes(tmpBuffer,cnt);
+		/*if(res)
+			cout<<"append task: append "<<cnt<<" data  to BT adapter success"<<endl;
+		else
+			cout<<"append task: append "<<cnt<<" data to Bt adapter failed"<<endl;*/
+		if(feof(fp)){
+			cout<<"reach the file end"<<endl;
+			break;
+		}
+	}
+}
+bool ProcessMessages()
+{
+
+    while (XPending(pDisp))
+    {
+        XEvent event;
+
+        XNextEvent(pDisp, &event);
+
+        switch (event.type)
+        {
+        case ButtonPress:
+           // OnMouse(ButtonPress, mousebuttons[event.xbutton.button-1], event.xbutton.x, event.xbutton.y);
+            break;
+        case ButtonRelease:
+            //OnMouse(ButtonRelease, mousebuttons[event.xbutton.button-1], event.xbutton.x, event.xbutton.y);
+            break;
+
+        case MotionNotify:
+            {
+                while (XCheckTypedWindowEvent(pDisp, event.xmotion.window, MotionNotify, &event));
+                Window rw, cw;
+                int rx, ry, x, y;
+                unsigned mods;
+                if (XQueryPointer(pDisp, win, &rw, &cw, &rx, &ry, &x, &y, &mods))
+                {
+
+                }
+                //    OnMouse(MotionNotify, 0, event.xmotion.x, event.xmotion.y);
+            }
+            break;
+
+        case KeyPress:
+        {
+        	break;
+        }
+        case KeyRelease:
+            {
+                char chars[16];
+                KeySym code;
+                int n = XLookupString(&event.xkey, chars, sizeof(chars)-1, &code, 0);
+                if(code == 'a'){
+                	printf("you press the table A\n");
+                	static bool pauseFlag = false;
+                	if(pauseFlag == false){
+                		gPlayer.pause();
+                		pauseFlag = true;
+                	}else{
+                		gPlayer.resume();
+                		pauseFlag = false;
+                	}
+                }
+                if(code == 'b'){
+                	printf("you press the table B\n");
+                	gPlayer.startPlayback(tmpUrl);
+                }
+                if(code=='c'){
+                	printf("you press the table C\n");
+                	double tmpTime = gPlayer.time();
+                	cout<<"currnt time"<<tmpTime<<endl;
+                	//gPlayer.seek(tmpTime +10);
+                	seekTime = tmpTime +10;
+                	pthread_create(&seekThread, &seekAttr, seekTask, &seekTime);
+                }
+                if(code=='d'){
+                	printf("you press the table D\n");
+                	double tmpTime = gPlayer.time();
+                	cout<<"currnt time"<<tmpTime<<endl;
+                	gPlayer.seek(tmpTime -10);
+                }
+                if(code =='x'){
+                	exitApp = 1;
+                }
+                if (code >= 'a' && code <= 'z')
+                    code += ('A' - 'a');
+
+                for (int i = 0; i < n; i++)
+                {
+
+                }
+                	//    OnKey(code, chars[i], event.xkey.state, event.type == KeyPress);
+                if (n == 0)
+                {
+
+                }
+                	//  OnKey(code, 0, event.xkey.state, event.type == KeyPress);
+            }
+            break;
+
+        case ConfigureNotify:
+            //WWidth = event.xconfigure.width;
+            //WHeight = event.xconfigure.height;
+            //WXpos = event.xconfigure.x;
+           // WYpos = event.xconfigure.y;
+            break;
+        case ClientMessage:
+            if (event.xclient.message_type == Atoms[WmProtocols] &&
+                Atom(event.xclient.data.l[0]) == Atoms[WmDeleteWindow])
+	      //QuitFlag = 1;
+            break;
+        }
+    }
+
+    return 1;
+}
+#include "ClockTime.h"
+int main ( int argc, char *argv[] )
+{
+	long cur,pre;
+   if(argc <2){
+	   printf("you need enter an file of video to play\n");
+	   return 0;
+   }
+	pthread_attr_init(&seekAttr);
+	pthread_attr_setdetachstate(&seekAttr, PTHREAD_CREATE_DETACHED);
+	pthread_attr_init(&appendAttr);
+	//pthread_create(&appendBytesThread, &appendAttr, appendTask, &gPlayer);
+   const char *inputFile = argv[1];
+   printf("the input file is %s\n",inputFile);
+   if(!SetupWindow())
+		return 0;
+  printf("SetupWindowok\n");
+   if ( !Init () )
+      return 0;
+//lxn:init player
+	bool startRes = gPlayer.startPlayback(inputFile);
+	if(!startRes)
+		return 0;
+	//gPlayer2.startPlayback();
+#if 1
+	while(1)
+	{
+		//if(xev.type == KeyPress)
+		//	break;
+		ProcessMessages();
+
+		//lxn: begin to decode the video/audio frames
+		if(!firstOver){
+
+			pre = cur;
+			cur = snail::timer::getTicks();
+			//cout<<"circle Time = "<<cur-pre<<endl;
+			gPlayer.beginDisplay();
+			//long end = snail::timer::getTicks();
+			//printf("cost Time = %d\n",end - beg);
+			if(gPlayer.playOver()){
+				printf("%s(%d) __playOVer \n",__FILE__,__LINE__);
+				break;
+			//	firstOver = true;
+			}
+		}
+		/*if(firstOver){
+			gPlayer2.beginDisplay();
+			printf("begin to play the second video\n");
+		}*/
+		Draw();
+		glXSwapBuffers(pDisp, win);
+		if(exitApp)
+			break;
+
+	}
+
+#endif
+	return 0;
+}
+
+
+
