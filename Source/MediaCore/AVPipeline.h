@@ -40,6 +40,7 @@
 #include "Timer.h"
 #include "VideoDecoder.h"
 #include "MediaParserDelegate.h"
+#include "VideoDecoderDelegate.h"
 
 namespace MediaCore {
 
@@ -94,10 +95,9 @@ public:
 	static uint16_t  fetchWrapper(void *owner, int16_t *samples,uint16_t nSamples, bool& eof);
 	void push(CursoredBuffer *audio);
 };
-class AVPipeline : public MediaParserDelegate{
+class AVPipeline : public MediaParserDelegate,
+		     public VideoDecoderDelegate{
 public:
-	typedef boost::function<void(void)>   AsyncTask;
-
 	enum StatusCode{
 
 		//Internal status, not a valid ActionScript value
@@ -128,7 +128,7 @@ public:
 	};
 
 public:
-	AVPipeline();
+    AVPipeline();
 	~AVPipeline();
 
 	void Init();
@@ -144,41 +144,54 @@ public:
 	void pause();
 	void resume();
 
-	bool parseComplete();
-    	double videoTimeBase();
-    	auto_ptr<AVPacket> nextVideoEncodedFrame();
-    	void notifyParserThread();
+    //utils functions for get MediaParser info
+    bool IsParseComplete();
+    uint64_t GetPacketBufferedLength();
+    bool IsMediaPaserBufferFull();
+    
+    //MediaParserDelegate implementation
+    virtual void SetMediaInfo(const MediaInfo& mediaInfo) override;
+    virtual void SetMediaParserState(const MediaParserState& state) override;
+    //VideoDecoderDelegate implementation
+    virtual auto_ptr<AVPacket>	GetNextEncodedVideoFrame() override;
+    virtual MediaParserState GetMediaParserState() override;
+    virtual double GetVideoTimeBase() override;
+    virtual double GetAudioTimeBase() override;
 
-    	//MediaParserDelegate implementation
-    	virtual void SetMediaInfo(MediaInfo& mediaInfo) override;
-    	virtual void SetParserState(MediaParserState state) override;
-    	virtual void SaveVideoPacket(AVPacket* packet) override;
-	virtual void SaveAudioPacket(AVPacket* packet) override;
-	virtual uint64_t GetPacketBufferedLength()  override;
+    auto_ptr<EncodedAVFrame> GetNextEncodedAudioFrame();
 
-    	//test Async Task Module
-	void AsyncTaskTest();
-	void TestFunc();
+    //test Async Task Module
+    void AsyncTaskTest();
+    void TestFunc();
 
 private:
-    
-    	//action
-    	void PlaybackAction(string url);
-    	void SeekAction(int32_t pos);
-    	void PauseAction();
+    //utils
+    bool CreateMediaParser(std::string url, MediaParserDelegate* delegate);
+
+    uint64_t ConvertTime(double time, AVRational time_base);
+    uint64_t GetPacketDTS(AVPacket* packet, AVRational time_base);
+    //action
+    void PlaybackAction(string url);
+    void SeekAction(int32_t pos);
+    void PauseAction();
     
 	//play states control function
+	//
+	void SetPlayState(PlayState state);
+	PlayState GetPlayState();
+
 	void setStatus(StatusCode status);
 	StatusCode getStatus();
 	DecodingState decodingState(DecodingState state=DEC_NONE);
 	void refreshVideoFrame(bool paused = false);
 	void refreshAudioFrame(bool paused = false);
+	auto_ptr<AVPacket> nextVideoEncodedFrame();
 	auto_ptr<VideoImage> getDecodedVideoFrame(int64_t ts);
 	void pushDecodedAudioFrames(int64_t ts);
 	BufferedAudioStreamer::CursoredBuffer* getNextAudioDecodedFrame();
 	bool createVideoDecoder();
 	bool createAudioDecoder();
-	uint64_t StartPlayPosition();
+	uint64_t GetStartPlayTimestamp();
 
 	boost::scoped_ptr<MediaParser> _mediaParser;
 	boost::scoped_ptr<VideoDecoder> _videoDecoder;
@@ -191,11 +204,10 @@ private:
 
 	MediaInfo _mediaInfo;
 	MediaParserState _parserState;
-	deque<AVPacket*> _videoPacketQueue;
-	deque<AVPacket*> _audioPacketQueue;
 
 	//the time of lenght that bufferd video or audio packets
 	uint32_t _bufferTime;
+	PlayState play_state_;
 
 	//process audio data
 	BufferedAudioStreamer _audioStreamer;

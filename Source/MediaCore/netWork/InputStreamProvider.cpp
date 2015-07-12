@@ -24,7 +24,6 @@
 #include <memory>
 #include "IOChannel.h"
 #include "FileStreamProvider.h"
-#include "BtFileAdapter.h"
 using namespace std;
 
 namespace MediaCore {
@@ -52,10 +51,6 @@ auto_ptr<IOChannel> InputStreamProvider::getStream() const{
 		}
 	}else if(_url.protocol() == "http"){
 		stream = NetworkAdapter::makeStream(_url.str(),"");
-	}else if(_url.protocol() == "bt"){
-		cout<<"now to create BiFileAdapter()"<<endl;
-		auto_ptr<IOChannel> bt(new BtFileAdapter());
-		stream = bt;
 	}
 	return stream;
 }

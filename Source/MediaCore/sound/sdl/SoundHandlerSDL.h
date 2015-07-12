@@ -18,13 +18,13 @@
  *
  */
 
-#if 0
+#if 1
 
 #ifndef SOULDHANDLERSDL_H_
 #define SOULDHANDLERSDL_H_
 #include "SoundHandler.h"
-#include "SDL/SDL_audio.h"
-#include "SDL/SDL.h"
+#include "SDL2/SDL_audio.h"
+#include "SDL2/SDL.h"
 
 namespace MediaCore {
 

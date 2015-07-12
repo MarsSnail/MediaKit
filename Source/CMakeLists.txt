@@ -20,7 +20,7 @@ endif()
 endmacro(ADD_FRAMEWORK)
 
 
-SET(CMAKE_BUILD_TYPE Release)
+SET(CMAKE_BUILD_TYPE Debug)
 set(INC_PATH ./)
 set(SRC_PATH ./)
 
@@ -101,6 +101,7 @@ add_framework(CoreMedia mediaplayer)
 add_framework(VideoDecodeAcceleration mediaplayer)
 add_framework(GLUT mediaplayer)
 add_framework(OpenGL mediaplayer)
+add_framework(SDL2 mediaplayer)
 
 #add_framework(SDL mediaplayer)
 

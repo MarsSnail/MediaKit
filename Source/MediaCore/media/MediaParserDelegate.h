@@ -27,11 +27,8 @@ namespace MediaCore{
 
 class MediaParserDelegate{
 public:
-	virtual void SetMediaInfo(MediaInfo& mediaInfo) = 0;
-	virtual void SetParserState(MediaParserState state) = 0;
-	virtual void SaveVideoPacket(AVPacket* packet) = 0;
-	virtual void SaveAudioPacket(AVPacket* packet) = 0;
-	virtual uint64_t GetPacketBufferedLength()  = 0;
+	virtual void SetMediaInfo(const MediaInfo& mediaInfo) = 0;
+	virtual void SetMediaParserState(const MediaParserState& state) = 0;
 };
 
 } //namespace MediaCore

@@ -75,11 +75,11 @@ GLuint vsID, fsID, pID;
 bool hasInitTex;
 int main(int argc, char* argv[]){
 
-	if(argc<2){
+	if(argc<1){
 		printf("you need an file of video URI to play\n");
 		return 0;
 	}
-	const char *inputFile = argv[1];
+	const char *inputFile = "/Users/linan/MediaKitEnvironment/MediaKit/build/bin/1.mp4";
 	mediaKit.SetDelegate(pipelineDelegate);
 	mediaKit.Init();
 	mediaKit.startPlayback(inputFile);

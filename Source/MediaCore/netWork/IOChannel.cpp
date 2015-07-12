@@ -26,14 +26,13 @@
 #include "NetworkAdapter.h"
 #include "IOChannel.h"
 #include "FileStreamProvider.h"
-#include "BtFileAdapter.h"
 
 namespace MediaCore {
 
 //static function
 IOChannel* IOChannel::CreateIOChannel(Url url)
 {
-	IOChannel* stream;
+	IOChannel* stream = NULL;
 	if(url.protocol() == "file"){
 		string path = url.path();
 		if(0){
@@ -49,9 +48,6 @@ IOChannel* IOChannel::CreateIOChannel(Url url)
 		}
 	}else if(url.protocol() == "http"){
 		stream = NetworkAdapter::makeStream(url.str(),"").get();
-	}else if(url.protocol() == "bt"){
-		std::cout<<"now to create BiFileAdapter()"<<std::endl;
-		stream = new BtFileAdapter();
 	}
 	return stream;
 }

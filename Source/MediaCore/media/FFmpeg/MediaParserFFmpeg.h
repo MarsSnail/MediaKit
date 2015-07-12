@@ -22,7 +22,7 @@
 #define MEDIAPARSERFFMPEG_H_
 
 #include "SnailConfig.h"
-#include "MediaParser.h"
+#include "MediaParserBase.h"
 #include <deque>
 #include <string>
 #include <memory>
@@ -60,91 +60,83 @@ AVCodec *global_getVideoCodec();
 AVCodecContext *global_getAudioCtx();
 AVCodec *global_getAudioCodec();
 
-class MediaParserFFmpeg : public MediaParser{
+class MediaParserFFmpeg : public MediaParserBase{
 public:
 	MediaParserFFmpeg(std::string url, MediaParserDelegate* mediaParserDelegate);
 	virtual ~MediaParserFFmpeg();
 
-	void notifyIfNeed();
-	uint64_t videoConvertTime(double time)const;
-	uint64_t audioConvertTime(double time) const;
-	virtual uint64_t getAudioPacketDTS(AVPacket *pt) const;
-	virtual uint64_t getVideoPacketDTS(AVPacket *pt) const;
-/*	virtual uint64_t videoBufferLength() const;
-	virtual uint64_t audioBufferLength() const;*/
-	virtual void clearBuffers();
-	void clearBuffersNoLock();
-	virtual bool bufferFull() const ;
-	virtual uint64_t getBufferLengthNoLock() const;
-	virtual uint64_t getBufferLength() const;
-	virtual bool isBufferEmpty() const;
-	virtual double videoTimeBase()const ;
-	virtual double audioTimeBase()const ;
-	virtual int64_t getKeyFrameFilePosByIndex(int index);
-	virtual int32_t keyFrameCount();
+	virtual bool 	Init() override;
+	virtual bool 	Seek(int64_t millPos) override;
+	virtual int64_t GetRealSeekPos()  const override{return _realSeekPos;}	
+	virtual int64_t GetKeyFrameFilePosByIndex(int index) override;
+	virtual auto_ptr<AVPacket> GetNextEncodedVideoFrame() override;
+	virtual auto_ptr<AVPacket> GetNextEncodedAudioFrame() override;
+	virtual void SetBufferTime(uint64_t) override;
+	virtual uint64_t GetBufferTime() const override;
+	virtual uint64_t GetByteLoaded() const override;
+	virtual void PauseMediaParser() override;
+	virtual void ContinueMediaParser() override;
 
-	//play control function
-	virtual bool seek(int64_t millPos);
-	virtual int64_t getRealSeekPos()  const{
-		return _realSeekPos;
-	}
-
-	virtual auto_ptr<AVPacket> nextAudioEncodedFrame();
-	virtual auto_ptr<AVPacket> nextVideoEncodedFrame();
-protected:
-	//parser thread
-	virtual bool parseNextChunk();
-	bool parseNextFrame();
-/*
-	bool saveVideoPacket(AVPacket *pkt);
-	bool saveAudioPacket(AVPacket *pkt);
-*/
 private:
 	//ffmpeg avioContext callback functions
-	int readPacket(unsigned char *data, int dataSize);
-	int64_t seekMedia(int64_t offset, int whence);
 	static int readPacketCB(void *opaque, unsigned char *buffer, int bufSize);
 	static int64_t seekMediaCB(void *opaque, int64_t offset, int whence);
+	static const size_t _avioBufferSize = 4096	;
+	
+	virtual bool parseNextChunk();
+	bool SaveVideoPacket(AVPacket *pkt);
+	bool SaveAudioPacket(AVPacket *pkt);
+	void PauseMediaParserIfNeeded();
+	bool parseNextFrame();
+	void ResumeMediaParserIfNeeded();
+	void clearBuffers();
+	void clearBuffersNoLock();
+	bool isBufferEmpty() const;
+	bool IsParseComplete();
+	bool IsMediaPaserBufferFull();
+	uint64_t GetPacketBufferedLength();
+	uint64_t ConvertTime(double time, AVRational time_base);
+	uint64_t GetPacketDTS(AVPacket* packet, AVRational time_base);
+	double videoTimeBase();
+	double audioTimeBase();
+	int readPacket(unsigned char *data, int dataSize);
+	int64_t seekMedia(int64_t offset, int whence);
+	void SetMediaParserState(const MediaParserState& state);
 
-	//functions, vars for demuxer the video container
-	bool initParser();
 
-	AVFormatContext *_formatCtx;
-	AVIOContext *_avioCtx;
-	AVInputFormat *_inputFmt;
-	unsigned char *_avioBuffer;
-	static const size_t _avioBufferSize = 4096;
+	bool     	_isParseComplete;
+	bool     	_hasVideo;
+	bool 	 	_hasAudio;
+	uint64_t 	_bufferTime;
+	uint64_t 	_bytesLoaded;
+    boost::scoped_ptr<IOChannel> 	_inputStream;
 
+	unsigned char*   	_avioBuffer;
+	AVIOContext* 	 	_avioCtx;
+	AVInputFormat* 	 	_inputFmt;
+	AVFormatContext* 	_formatCtx;
 	//video objects
-	AVCodecContext *_videoCodecCtx;
-	AVCodec *_videoCodec;
-	AVStream *_videoStream;
-	SwsContext *_swsCtx;
-	int _videoStreamId;
+	int 				_videoStreamId;
+	AVCodec* 			_videoCodec;
+	AVStream* 			_videoStream;
+	SwsContext* 		_swsCtx;
+	AVCodecContext* 	_videoCodecCtx;
 	//audio objects
-	 AVCodecContext *_audioCodecCtx;
-	 AVCodec *_audioCodec;
-	AVStream *_audioStream;
-	SwrContext *_swrCtx;
-	int _audioStreamId;
-
-	unsigned long _lastParsedPosition;
-
-	//video packet deque
-//	deque<AVPacket*> _videoPacketsQueue;
-//	deque<AVPacket*> _audioPacketsQueue;
-
-	//vars for seek
-	bool _seekFlag;
-	int64_t _realSeekPos;
-	AVPacket *_seekPacket;
-
-	//debug var
-	int _audioPacketCount;
-	int _videoPacketCount;
-
-	//for sync av_read_frame and av_seek_frame;
-	boost::mutex _readFrameMutex;
+	int 				_audioStreamId;
+	AVCodec*			_audioCodec;
+	AVStream*			_audioStream;
+	SwrContext*			_swrCtx;
+	AVCodecContext*		_audioCodecCtx;
+	bool 				_seekFlag;
+	int64_t 			_realSeekPos;
+	AVPacket*			_seekPacket;
+	boost::mutex 		_readFrameMutex;
+	MediaInfo			_mediaInfo;
+	MediaParserState 	_mediaParserState; 
+	MediaParserDelegate* _delegate;
+	
+	boost::mutex 		_mutexVideoQueue;
+	boost::mutex    	_mutexAudioQueue;
 };
 
 } // namespace

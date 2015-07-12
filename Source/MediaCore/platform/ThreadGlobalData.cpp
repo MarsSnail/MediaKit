@@ -26,8 +26,7 @@ ThreadGlobalData *gThreadGlobalData=NULL;
 ThreadGlobalData* threadGlobalData(){
 	if(!gThreadGlobalData){
 		gThreadGlobalData = new ThreadGlobalData();
-	}else{
-		return gThreadGlobalData;
 	}
+    return gThreadGlobalData;
 }
 } // namespace

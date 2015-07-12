@@ -24,10 +24,10 @@
 
 namespace MediaCore {
 
-VideoDecoder::VideoDecoder(AVPipeline *avPipeline):
+VideoDecoder::VideoDecoder(VideoDecoderDelegate *delegate):
 		_killThreadFlag(false),
 		_isDecodeComplete(false),
-		_avPipeline(avPipeline),
+		_delegate(delegate),
 		_videoDecoderThread(0)
 {}
 
@@ -44,7 +44,7 @@ void VideoDecoder::decoderLoopStarter(VideoDecoder *videoDecoder){
 
 void VideoDecoder::decoderLoop(){
 	while(continueRunThread()){
-		decodeVideoFrame();
+		decodeFrame();
 		//snail::timer::snailSleep(100);
 	}
 }

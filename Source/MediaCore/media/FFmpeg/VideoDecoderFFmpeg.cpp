@@ -25,22 +25,23 @@
 #include "AVPipeline.h"
 #include "SnailException.h"
 #include "MediaParserFFmpeg.h"
+#include "VideoDecoderDelegate.h"
 
 using namespace std;
 
 namespace MediaCore {
 
-VideoDecoderFFmpeg::VideoDecoderFFmpeg(AVPipeline *pipeline):
-		VideoDecoder(pipeline),
+VideoDecoderFFmpeg::VideoDecoderFFmpeg(VideoDecoderDelegate *delegate):
+		VideoDecoder(delegate),
 		_videoCodecCtx(0),
 		_videoCodec(0),
 		_swsCtx(0),
 		_videoTimeBase(0),
-		_videoFrameCount(0){
-	if(!init()){
-		throw SnailException("ERROR:Create the Video Decoder(FFmpeg) failed");
-	}
-	startVideoDecoderThread();
+		_videoFrameCount(0),
+        _audioCodecCtx(0),
+        _audioCodec(0),
+        _swrCtx(0),
+        _audioTimeBase(0){
 }
 
 VideoDecoderFFmpeg::~VideoDecoderFFmpeg(){
@@ -53,38 +54,55 @@ VideoDecoderFFmpeg::~VideoDecoderFFmpeg(){
 		_swsCtx = NULL;
 	}
 }
-bool VideoDecoderFFmpeg::init(){
+bool VideoDecoderFFmpeg::Init(){
 	_videoCodecCtx = global_getVideoCtx();
 	_videoCodec = global_getVideoCodec();
 	if(!_videoCodecCtx || !_videoCodec){
 		return false;
 	}
-	_videoTimeBase = _avPipeline->videoTimeBase();
+	if(!_delegate)
+	 	return false;
+	_videoTimeBase = _delegate->GetVideoTimeBase();
 	if(!_videoTimeBase){
 		return false;
 	}
+	startVideoDecoderThread();
 	return true;
 }
+    bool VideoDecoderFFmpeg::decodeFrame(){
+        decodeVideoFrame();
+        return true;
+    }
+    
+    bool VideoDecoderFFmpeg::InitAudioDecoder(){
+        _audioCodecCtx = global_getAudioCtx();
+        _audioCodec = global_getAudioCodec();
+        _audioTimeBase = _delegate->GetAudioTimeBase();
+        if(!_audioCodecCtx || !_audioCodec || !_audioTimeBase){
+            return false;
+        }else
+            return true;
+    }
 bool VideoDecoderFFmpeg::decodeVideoFrame(){
-	auto_ptr<AVPacket> pkt = _avPipeline->nextVideoEncodedFrame();
+	if(!_delegate)
+		return false;
+	auto_ptr<AVPacket> pkt = _delegate->GetNextEncodedVideoFrame();
 
 	if(!pkt.get()){
-		if(_avPipeline->parseComplete()){
+		MediaParserState parser_state = _delegate->GetMediaParserState();
+		if(parser_state == PARSER_STATE_COMPLETE){
 			boost::mutex::scoped_lock lock(_framesQueueMutex);
 			cout<<"now parsed completely and the video Packet queue is empty,so block the video decoder Thread"<<endl;
 			_decoderThreadWakeup.wait(lock);
 			_isDecodeComplete = true;
-		}else{
-			_avPipeline->notifyParserThread();
 		}
-
 		return false;
 	}
 
 	AVFrame *videoFrame = NULL;
 	int gotFrame ,len;
 	gotFrame = len = 0;
-	videoFrame = avcodec_alloc_frame();
+	videoFrame = av_frame_alloc();
 	if(!videoFrame){
 		printf("<lxn>%s(%d)-->alloc the video avFrame failed\n",__FILE__,__LINE__);
 		av_free_packet(pkt.get());
@@ -240,7 +258,7 @@ VideoImage *VideoDecoderFFmpeg::saveYuv(AVFrame *frame){
 		}
 #endif
 		reImage->_pts = convertTime(frame->pkt_pts);
-		avcodec_free_frame(&frame);
+		av_frame_free(&frame);
 	}
 
 	return reImage;
@@ -279,7 +297,7 @@ VideoImage * VideoDecoderFFmpeg::yuvToRgb(AVFrame* frame){
 			cout<<"conver the image failed"<<endl;
 			goto fail;
 		}
-		avcodec_free_frame(&videoFrame);
+		av_frame_free(&videoFrame);
 		return reImage;
 	}//if(videoFrame)
 	else{
@@ -287,7 +305,7 @@ VideoImage * VideoDecoderFFmpeg::yuvToRgb(AVFrame* frame){
 		return reImage;
 	}
 	fail:
-		avcodec_free_frame(&videoFrame);
+		av_frame_free(&videoFrame);
 		return reImage;
 
 }
@@ -382,5 +400,145 @@ void VideoDecoderFFmpeg::clearVideoFrameQueue(){
 		_decoderThreadWakeup.notify_all();
 	}
 }
+    void VideoDecoderFFmpeg::pushAudioDecodedFrame(AudioDecodedFrame *frame){
+        boost::mutex::scoped_lock lock(_framesQueueMutex);
+        _audioDecodedFrameQueue.push_back(frame);
+        if(AudioQueueLength()>=4){
+            _decoderThreadWakeup.wait(lock);
+        }
+    }
+    AudioDecodedFrame *VideoDecoderFFmpeg::popAudioDecodedFrame(){
+        boost::mutex::scoped_lock lock(_framesQueueMutex);
+        AudioDecodedFrame *resFrame=NULL;
+        if(!queueEmpty()){
+            resFrame = _audioDecodedFrameQueue.front();
+            _audioDecodedFrameQueue.pop_front();
+        }else{
+            cout<<"audio decoded frame queue empty"<<endl;
+        }
+        if(AudioQueueLength()<=1){
+            _decoderThreadWakeup.notify_all();
+        }
+        return resFrame;
+    }
+    int64_t VideoDecoderFFmpeg::nextAudioFrameTimestamp(){
+        boost::mutex::scoped_lock lock(_framesQueueMutex);
+        int64_t nextTimestamp;
+        if(AudioQueueEmpty()){
+            nextTimestamp = -1;
+        }else{
+            AudioDecodedFrame *tmpAudioFrame= _audioDecodedFrameQueue.front();
+            nextTimestamp = tmpAudioFrame->getPTS();
+        }
+        return nextTimestamp;
+    }
+    
+    int VideoDecoderFFmpeg::AudioQueueLength() {
+        return _audioDecodedFrameQueue.size();
+    }
+    
+    bool VideoDecoderFFmpeg::AudioQueueEmpty() {
+        return _audioDecodedFrameQueue.empty();
+    }
+    //utility functions
+    int64_t VideoDecoderFFmpeg::convertAudioTime(double time) const {
+        return (int64_t)(time*_audioTimeBase*1000.0);
+    }
+    
+    void VideoDecoderFFmpeg::decodeAudioFrame(){
+        auto_ptr<AVPacket> pkt = _delegate->GetNextEncodedAudioFrame();
+        
+        if(!pkt.get() || !pkt->buf->buffer){
+            //when play over if as not call the close then block the video Decoder thread
+            MediaParserState parser_state = _delegate->GetMediaParserState();
+            if(parser_state == PARSER_STATE_COMPLETE){
+                cout<<"now parsed completely and the audio Packet queue is empty,so block the audio decoder Thread"<<endl;
+            }
+            
+            return ;
+        }
+        
+        AVFrame *audioFrame = NULL;
+        int gotFrame, len;
+        gotFrame = len = 0;
+        audioFrame = av_frame_alloc();
+        if(!audioFrame){
+            av_free_packet(pkt.get());
+            cout<<__FILE__<<": "<<__LINE__<<"alloc audio frame failed"<<endl;
+            return ;
+        }
+        
+        len = avcodec_decode_audio4(_audioCodecCtx, audioFrame, &gotFrame, pkt.get());
+        av_free_packet(pkt.get());
+        if(!gotFrame){
+            cout<<__FILE__<<": "<<__LINE__<<"decode the audio frame failed"<<endl;
+            av_frame_free(&audioFrame);
+            return ;
+        }
+        /*int decoded_data_size = av_samples_get_buffer_size(NULL,
+         audioFrame->channels,
+         audioFrame->nb_samples,
+         (enum AVSampleFormat)audioFrame->format, 1);*/
+        //**********************convert the sample format **********/
+        int wanted_nb_samples = audioFrame->nb_samples;
+        if(!_swrCtx){
+            swr_free(&_swrCtx);
+            _swrCtx = swr_alloc_set_opts(NULL,
+                                         _audioCodecCtx->channel_layout, AV_SAMPLE_FMT_S16,audioFrame->sample_rate,
+                                         _audioCodecCtx->channel_layout, (enum AVSampleFormat)audioFrame->format,
+                                         audioFrame->sample_rate, 0, NULL);
+            if(!_swrCtx || swr_init(_swrCtx) < 0){
+                cout<<"create the swrContext failed"<<endl;
+                av_frame_free(&audioFrame);
+                return ;
+            }
+        }
+        if(_swrCtx){
+            const uint8_t **in = (const uint8_t **)audioFrame->extended_data;
+            int outCount = wanted_nb_samples + 256;
+            int outSize = av_samples_get_buffer_size(NULL, audioFrame->channels, outCount, AV_SAMPLE_FMT_S16, 0);
+            
+            uint8_t  *tmpPtr = NULL;
+            uint8_t **out = &tmpPtr;
+            *out = new uint8_t[outSize];//(uint8_t*)malloc(sizeof(uint8_t)*outSize);
+            memset(*out, 0, outSize);
+            if(!(*out)){
+                cout<<__FILE__<<": "<<__LINE__<<"ERROR: alloc buffer failed"<<endl;
+                av_frame_free(&audioFrame);
+                return ;
+            }
+            int resLen = swr_convert(_swrCtx, out, outCount, in, audioFrame->nb_samples);
+            if(resLen < 0){
+                cout<<__FILE__<<": "<<__LINE__<<"convert the frame failed"<<endl;
+                av_frame_free(&audioFrame);
+                return ;
+            }
+            if(resLen == outCount){
+                cout<<"WARNING: audio buffer is probably to small"<<endl;
+            }
+            int resampledDataSize = resLen * audioFrame->channels * av_get_bytes_per_sample(AV_SAMPLE_FMT_S16);
+            int64_t framePts = convertTime(audioFrame->pkt_pts);
+            
+            AudioDecodedFrame *newFrame =  new AudioDecodedFrame(*out, resampledDataSize, framePts);
+            pushAudioDecodedFrame(newFrame);
+            av_frame_free(&audioFrame);
+        }//if(_swrCtx)
+    }
+    
+    void VideoDecoderFFmpeg::clearAudioFrameQueue(){
+        boost::mutex::scoped_lock lock(_framesQueueMutex);
+        deque<AudioDecodedFrame*>::iterator iter,end;
+        iter = _audioDecodedFrameQueue.begin();
+        end = _audioDecodedFrameQueue.end();
+        for(; iter!=end; iter++){
+            delete(*iter);
+        }
+        _audioDecodedFrameQueue.clear();
+        avcodec_flush_buffers(_audioCodecCtx);
+        if(AudioQueueLength()<4){
+            _decoderThreadWakeup.notify_all();
+        }
+    }
+
 
 } // namespace

@@ -25,6 +25,7 @@
 #include "VideoDecoder.h"
 #include "ImageType.h"
 #include "VideoDecodedFrame.h"
+#include "AudioDecodedFrame.h"
 extern "C"{
 #include <libswresample/swresample.h>
 #include <libswscale/swscale.h>
@@ -34,36 +35,34 @@ extern "C"{
 using namespace std;
 
 namespace MediaCore {
-/*
-class VideoDecodedFrame{
-public:
-	VideoDecodedFrame(VideoImage *image, int64_t pts):
-		_image(image),
-		_pts(pts){
 
-	}
-	VideoImage *getImage() const {
-		return _image;
-	}
-	int64_t getPts() const {
-		return _pts;
-	}
-private:
-	VideoImage *_image;
-	int64_t _pts;
-};
-*/
 class VideoDecoderFFmpeg : public VideoDecoder{
 public:
-	VideoDecoderFFmpeg(AVPipeline *pipeline);
-	 virtual ~VideoDecoderFFmpeg();
-	virtual auto_ptr<VideoImage> getVideoImage() ;
-	virtual int64_t nextVideoFrameTimestamp();
-	virtual void clearVideoFrameQueue();
-	virtual int videoFrameQueueLength();
+	VideoDecoderFFmpeg(VideoDecoderDelegate *delegate);
+	
+	virtual ~VideoDecoderFFmpeg() override;
+	virtual bool Init() override;
+    virtual bool decodeFrame() override;
+	virtual auto_ptr<VideoImage> getVideoImage() override;
+	virtual int64_t nextVideoFrameTimestamp() override;
+	virtual void clearVideoFrameQueue() override;
+	virtual int videoFrameQueueLength() override;
+    
+    virtual AudioDecodedFrame* popAudioDecodedFrame() override;
+    virtual int64_t nextAudioFrameTimestamp() override;
+    virtual void clearAudioFrameQueue() override;
+
 private:
 	bool init();
-	virtual bool decodeVideoFrame();
+    bool InitAudioDecoder();
+    int AudioQueueLength();
+    bool AudioQueueEmpty();
+    int64_t convertAudioTime(double time) const;
+    void decodeAudioFrame();
+    void pushAudioDecodedFrame(AudioDecodedFrame* frame);
+    
+    
+	bool decodeVideoFrame();
 	void pushDecodedVideoFrame(AVFrame *frame);
 	VideoDecodedFrame* popDecodedVideoFrame();
 	//function for operate the video decoded frame queue
@@ -75,13 +74,20 @@ private:
 	VideoImage *yuvToRgb(AVFrame* frame);
 	VideoImage *saveYuv(AVFrame *frame);
 private:
+    //video
 	AVCodecContext *_videoCodecCtx;
 	AVCodec *_videoCodec;
 	SwsContext *_swsCtx;
 	double _videoTimeBase;
-	//video decoded frame queue
-	//deque<AVFrame*> _videoDecodedFramesQueue;
 	deque<VideoDecodedFrame*> _videoDecodedFramesQueue;
+    //audio
+    AVCodecContext *_audioCodecCtx;
+    AVCodec *_audioCodec;
+    SwrContext *_swrCtx;
+    double _audioTimeBase;
+    //deque used for save decoded audio frame
+    deque<AudioDecodedFrame*> _audioDecodedFrameQueue;
+    
 	boost::mutex _framesQueueMutex;
 	boost::condition _decoderThreadWakeup;
 

@@ -25,51 +25,21 @@
 #include <memory>
 #include <stdint.h>
 #include <iostream>
+#include "boost/thread.hpp"
 #include "AudioDecodedFrame.h"
 
 using MediaCore::AudioDecodedFrame;
 using std::cout;
 using std::cin;
-using std::endl
-;
-namespace MediaCore {
-/*
-class AudioDecodedFrame{
-public:
-	AudioDecodedFrame(unsigned char* data=NULL,uint64_t size=0, uint64_t pts=0):
-		_data(data),
-		_dataSize(size),
-		_pts(pts)
-		{
+using std::endl;
 
-	}
-	~AudioDecodedFrame(){
-		if(_data){
-			delete[] _data;
-		}else{
-		}
-	}
-	unsigned char* data() const {
-		return _data;
-	}
-	void resetDataPtr() {
-		_data = NULL;
-	}
-	uint64_t timestamp()const {
-		return _pts;
-	}
-	uint64_t dataSize()const {
-		return _dataSize;
-	}
-private:
-	unsigned char * _data;
-	uint64_t _dataSize;
-	uint64_t _pts;
-};//class AudioDecodedFrame
-*/
+namespace MediaCore {
+
+class AVPipeline;
+
 class AudioDecoder{
 public:
-	AudioDecoder(MediaParser *mediaParser);
+	AudioDecoder(AVPipeline *pipeline);
 	virtual ~AudioDecoder();
 
 	virtual AudioDecodedFrame* popAudioDecodedFrame()=0;
@@ -88,8 +58,8 @@ protected:
 
 protected:
 	//audio decoder thread
-	MediaParser *_mediaParser;
-	auto_ptr<boost::thread> _audioDecoderThread;
+	AVPipeline* _avpipeline;
+	std::auto_ptr<boost::thread> _audioDecoderThread;
 	boost::barrier _audioDecoderThreadBarrier;
 	bool _killThreadFlag;
 };//class AudioDecoder

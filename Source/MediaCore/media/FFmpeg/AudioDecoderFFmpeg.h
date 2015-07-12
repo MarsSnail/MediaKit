@@ -27,6 +27,11 @@
 #include <iostream>
 #include <memory>
 #include <deque>
+
+#include "boost/thread.hpp"
+#include "boost/thread/condition.hpp"
+
+
 extern "C"{
 #ifndef INT64_C
 #define INT64_C(c) (c ## LL)
@@ -52,7 +57,7 @@ namespace MediaCore {
 
 class AudioDecoderFFmpeg : public AudioDecoder {
 public:
-	AudioDecoderFFmpeg(MediaParser *mediaParser);
+	AudioDecoderFFmpeg(AVPipeline *pipeline);
 	virtual ~AudioDecoderFFmpeg();
 	bool init();
 	AudioDecodedFrame* popAudioDecodedFrame();

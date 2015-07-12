@@ -17,7 +17,7 @@
  * Boston, MA 02110-1301, USA.
  *
  */
-#if 0
+#if 1
 
 #include "SoundHandlerSDL.h"
 #include <iostream>

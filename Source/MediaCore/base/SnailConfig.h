@@ -22,6 +22,6 @@
 #define SNAILCONFIG_H_
 
 //enable/disable sound
-#define ENABLE_SOUND 0
+#define ENABLE_SOUND 1
 #define USE_YUV 1
 #endif /* SNAILCONFIG_H_ */

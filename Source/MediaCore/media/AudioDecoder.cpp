@@ -19,12 +19,12 @@
  */
 
 #include "AudioDecoder.h"
-
+#include "AVPipeline.h"
 
 namespace MediaCore {
 
-AudioDecoder::AudioDecoder(MediaParser *mediaParser):
-		_mediaParser(mediaParser),
+AudioDecoder::AudioDecoder(AVPipeline *pipeline):
+		_avpipeline(pipeline),
 		_audioDecoderThread(0),
 		_audioDecoderThreadBarrier(2),
 		_killThreadFlag(false){

@@ -19,13 +19,14 @@
  */
 
 #include "SnailConfig.h"
+#include "CommonDef.h"
 #include "AVPipeline.h"
 #include "Url.h"
 #include "InputStreamProvider.h"
 #include "MediaParserFFmpeg.h"
 #include "VideoDecoderFFmpeg.h"
 #include "AudioDecoderFFmpeg.h"
-//#include "SoundHandlerSDL.h"
+#include "SoundHandlerSDL.h"
 #include "ClockTime.h"
 #include "SnailException.h"
 #include "SnailSleep.h"
@@ -38,7 +39,7 @@ boost::scoped_ptr<SoundHandler>  AVPipeline::_soundHandler ;
 	AVPipeline::AVPipeline():
 			_mediaParser(NULL),
 			_videoDecoder(NULL),
-			_audioDecoder(NULL),
+            _audioDecoder(NULL),
 			_sysClock(),
 			_playbackClock(_sysClock),
 			_playHead(&_playbackClock),
@@ -55,18 +56,11 @@ boost::scoped_ptr<SoundHandler>  AVPipeline::_soundHandler ;
 		cout<<endl;
 		cout<<"Instance ID="<<_id<<endl;
 		cout<<endl;
-#if ENABLE_SOUND
 	if(!_soundHandler.get()){
 		_soundHandler.reset(new SoundHandlerSDL());
 	}
 	_audioStreamer.setSoundHandler(_soundHandler.get());
-#else
-	cout<<"***************************************"<<endl;
-	cout<<"***************************************"<<endl;
-	cout<<"***********Sound Disabled***************"<<endl;
-	cout<<"***************************************"<<endl;
-	cout<<"***************************************"<<endl;
-#endif
+
 	}
 
 AVPipeline::~AVPipeline(){
@@ -102,17 +96,19 @@ void AVPipeline::SetDelegate(boost::shared_ptr<AVPipelineDelegate>  delegate){
 
 bool AVPipeline::createVideoDecoder(){
 	_videoDecoder.reset(new VideoDecoderFFmpeg(this));
+	bool result = _videoDecoder.get() && _videoDecoder->Init();
 	_playHead.setVideoConsumerAvailable();
-	return true;
+	return result;
 }
 bool AVPipeline::createAudioDecoder(){
-	_audioDecoder.reset(new AudioDecoderFFmpeg(_mediaParser.get()));
+    _audioDecoder.reset(new AudioDecoderFFmpeg(this));
 	_playHead.setAudioConsumerAvailable();
 	return true;
 }
 bool AVPipeline::startPlayback(string url){
     AsyncTask playbackTask = boost::bind(&AVPipeline::PlaybackAction, this, url);
     PostTask(playbackTask);
+    return true;
 }
     
 void AVPipeline::PlaybackAction(string url){
@@ -121,48 +117,29 @@ void AVPipeline::PlaybackAction(string url){
     _url = url;
     Url newUrl(url);
     
-    try{
-        _mediaParser.reset(new MediaParserFFmpeg(_url, this) );
-    }catch(SnailException& ex){
-        cout<<__FILE__<<"("<<__LINE__<<")"<<"---->"<<ex.what()<<endl;
-        return ;
+    if(!CreateMediaParser(url, this)){
+    	cout<<"Create MediaParser failed"<<endl;
+    	return ;
     }
-    if(!_mediaParser.get()){
-        cout<<__FILE__<<"("<<__LINE__<<")"<<"---->"<<"mediaParser create falied"<<endl;
-        return ;
-    }else{
-        cout<<"OK: MediaParser create success"<<endl;
-    }
-    if(!_videoDecoder.get()){
-        try{
-            createVideoDecoder();
-        }catch(SnailException& ex){
-            cout<<__FILE__<<"("<<__LINE__<<")"<<"---->"<<ex.what()<<endl;
-            return ;
-        }
-    }
-#if ENABLE_SOUND
-    if(!_audioDecoder.get()){
-        try{
-            createAudioDecoder();
-        }catch(SnailException& ex){
-            cout<<__FILE__<<":"<<ex.what()<<endl;
-            return ;
-        }
-    }
-#endif
+
+	if(!createVideoDecoder()){
+		cout<<"Create Video Decoder failed"<<endl;
+		return ;
+	}
+    
+    if(!createAudioDecoder())
+        cout<<"create Audio Decoder failed"<<endl;
+
     _playOver = false; //must be do this befor act the function of _playHead.seekTo(0)
-    _mediaParser->setBufferTime(_bufferTime);
+    _mediaParser->SetBufferTime(_bufferTime);
     cout<<"=========> BufferTimeLenght = "<<_bufferTime<<"<==========="<<endl;
     decodingState(DEC_DECODEPAUSE);
     _playbackClock.pause();
-    
+    SetPlayState(PLAY_STATE_PAUSE);
     _playHead.seekTo(0);
     _playHead.setState(PlayControl::PLAY_PLAYING);
     setStatus(playStart);
-#if ENABLE_SOUND
     _audioStreamer.attachAuxStreamer();
-#endif
     return ;
 }
     
@@ -172,9 +149,6 @@ void AVPipeline::beginDisplay(){
 
 	if(_seekFlag)	return ;
 	if(!_mediaParser.get()||!_videoDecoder.get()) 	return ;
-#if ENABLE_SOUND
-	if(!_audioDecoder.get())		return ;
-#endif
 	if(decodingState()==DEC_STOP){
 		_playOver = true;
 		cout<<"now  play stop!"<<endl;
@@ -183,8 +157,8 @@ void AVPipeline::beginDisplay(){
 	size_t videoFrameQueueSize = _videoDecoder->videoFrameQueueLength();
 
 	//switch from DEC_DECODING to DEC_DECPAUSE
-	if(decodingState()==DEC_DECODING &&videoFrameQueueSize==0){
-		decodingState(DEC_DECODEPAUSE);
+	if(GetPlayState() == PLAY_STATE_PLAYING  && videoFrameQueueSize == 0){
+		SetPlayState(PLAY_STATE_BUFFERING);
 		_playbackClock.pause();
 		cout<<endl;
 		cout<<"now  switch from DEC_DECODING to DEC_DECPAUSE and pause PlaybackClock"<<endl;
@@ -192,15 +166,15 @@ void AVPipeline::beginDisplay(){
 		return ;
 	}
     //when state is DEC_DECODEPAUSE,process the play actions
-	if(decodingState()==DEC_DECODEPAUSE){
-		if(videoFrameQueueSize==0){
+	if(GetPlayState() == PLAY_STATE_BUFFERING){
+		if(videoFrameQueueSize==0 && IsParseComplete()){
 			cout<<endl;
 			cout<<"stay the state in DEC_DECODEPAUSE and bufferLen >=0"<<endl;
 			cout<<endl;
-			_playOver = _videoDecoder->IsDecodeComplete();
+			SetPlayState(PLAY_STATE_OVER);
 			return ;
 		}else{
-			decodingState(DEC_DECODING);
+			SetPlayState(PLAY_STATE_PLAYING);
 			_playbackClock.resume();
 			cout<<endl;
 			cout<<"now  switch from  DEC_DECPAUSE to DEC_DECODING and resume PlaybackClock"<<endl;
@@ -210,47 +184,35 @@ void AVPipeline::beginDisplay(){
 
 	uint64_t curPosition = _playHead.getPosition();
 	if(0 == curPosition){
-		_playHead.seekTo(StartPlayPosition());
+		_playHead.seekTo(GetStartPlayTimestamp());
 	}
 	refreshVideoFrame();
-#if ENABLE_SOUND
 	refreshAudioFrame();
-#endif
 	//Advance PlayControl position if current one decoded frame was
 	// consumed by all available consumers
 	_playHead.advanceIfConsumed();
 }
 
-uint64_t AVPipeline::StartPlayPosition(){
+uint64_t AVPipeline::GetStartPlayTimestamp(){
 		uint64_t start_position;
 
-#if ENABLE_SOUND
 		uint64_t videoBeginPosition =  _videoDecoder->nextVideoFrameTimestamp();
 		uint64_t audioBeginPosition = _audioDecoder->nextAudioFrameTimestamp();
 		start_position = std::min(videoBeginPosition, audioBeginPosition);
-#else
-		start_position = _videoDecoder->nextVideoFrameTimestamp();
-#endif
 		return start_position;
 }
 void AVPipeline::refreshVideoFrame(bool paused){
 	assert(_mediaParser.get());
-	if(!paused && _playHead.getState()==PlayControl::PLAY_PAUSED){
-		return ;
-	}
-	if(_playHead.isVideoConsumed())
-	{
-		return;
-		}
 
-	//get the current time
+	if(!paused && _playHead.getState()==PlayControl::PLAY_PAUSED)
+		return ;
+	if(_playHead.isVideoConsumed())	return;
+
 	uint64_t curPos = _playHead.getPosition();
-	auto_ptr<VideoImage> videoImage(NULL);
-	videoImage = getDecodedVideoFrame(curPos);
-	if(videoImage.get()){
-		if(_avPipelineDelegate.get()){
-			_avPipelineDelegate->UpdateVideoFrame(videoImage);
-		}
+	auto_ptr<VideoImage> videoImage = getDecodedVideoFrame(curPos);
+
+	if(videoImage.get() && _avPipelineDelegate.get()){
+		_avPipelineDelegate->UpdateVideoFrame(videoImage);
 	}
 	_playHead.setVideoConsumed();
 }
@@ -266,6 +228,7 @@ void AVPipeline::refreshAudioFrame(bool paused){
 	uint64_t curPos = _playHead.getPosition();
 	pushDecodedAudioFrames(curPos);
 }
+
 void AVPipeline::pushDecodedAudioFrames(int64_t ts){
 	bool consumed = false;
 	int64_t nextTimestamp = -1;
@@ -280,13 +243,13 @@ void AVPipeline::pushDecodedAudioFrames(int64_t ts){
 			return ;
 		}
 		lock.unlock();
-		bool parsingComplete = _mediaParser->parseComplete();
+		bool parsingComplete = IsParseComplete();
 		nextTimestamp = _audioDecoder->nextAudioFrameTimestamp();
 		if(nextTimestamp==-1){
 			if(parsingComplete){
 				consumed = true;
-				if(_mediaParser->isBufferEmpty()){
-					decodingState(DEC_STOP);
+				if(false/*_mediaParser->isBufferEmpty()*/){
+					SetPlayState(PLAY_STATE_OVER);
 					setStatus(playStop);
 				}
 				break;
@@ -311,7 +274,6 @@ void AVPipeline::pushDecodedAudioFrames(int64_t ts){
 		}//while(1)
 
 	if(consumed){
-		assert(decodingState() != DEC_DECODEPAUSE);
 		_playbackClock.resume();
 		_playHead.setAudioConsumed();
 	}
@@ -341,12 +303,11 @@ auto_ptr<VideoImage> AVPipeline::getDecodedVideoFrame(int64_t ts){
 
 	auto_ptr<VideoImage> videoImage;
 	int64_t nextTimestamp;
-	bool parseComplete = _mediaParser->parseComplete();
 	nextTimestamp = _videoDecoder->nextVideoFrameTimestamp();
 
 	if(nextTimestamp==-1){
 		cout<<"the next Timestamp is -1"<<endl;
-		if(parseComplete && _mediaParser->isBufferEmpty()){
+		if(IsParseComplete()){
 			decodingState(DEC_STOP);
 			setStatus(playStop);
 		}
@@ -386,6 +347,14 @@ AVPipeline::DecodingState AVPipeline::decodingState(DecodingState state){
 
 }
 
+void AVPipeline::SetPlayState(PlayState state){
+	play_state_ = state;
+}
+
+PlayState AVPipeline::GetPlayState(){
+	return play_state_;
+}
+
 void AVPipeline::setStatus(StatusCode status){
 	_statusCode = status;
 }
@@ -393,45 +362,58 @@ AVPipeline::StatusCode AVPipeline::getStatus(){
 	return _statusCode;
 }
     
-bool AVPipeline::parseComplete(){
-    return _mediaParser->parseComplete();
-}
-    
-double AVPipeline::videoTimeBase(){
-        return _mediaParser->videoTimeBase();
-}
-    
 auto_ptr<AVPacket> AVPipeline::nextVideoEncodedFrame(){
-    return _mediaParser->nextVideoEncodedFrame();
-}
-    
-void AVPipeline::notifyParserThread(){
-        _mediaParser->notifyParserThread();
+    return _mediaParser->GetNextEncodedVideoFrame();
 }
 
-void AVPipeline::SetMediaInfo(MediaInfo& mediaInfo){
+
+//Utilies for control MediaParser
+/***********Utilies for Mediaparser**************************/
+bool AVPipeline::CreateMediaParser(std::string url, MediaParserDelegate* delegate){
+     _mediaParser.reset(new MediaParserFFmpeg(_url, this));
+
+     if(!_mediaParser.get() || !_mediaParser->Init()){
+     	return false;
+     }
+     return true;
+}
+
+bool AVPipeline::IsParseComplete(){
+	return _parserState == PARSER_STATE_COMPLETE;
+}
+
+/****************end*******************/
+
+//MediaParser Delegate Implementation
+void AVPipeline::SetMediaInfo(const MediaInfo& mediaInfo){
 	_mediaInfo = mediaInfo;
 std::cout<<"Get Media Info  through MediaParaerDelegate"<<std::endl;
 }
 
-void AVPipeline::SetParserState(MediaParserState state){
+void AVPipeline::SetMediaParserState(const MediaParserState& state){
 	_parserState = state;
 	std::cout<<"Ge MediaParser State"<<std::endl;
 }
 
- void SaveVideoPacket(AVPacket* packet){
- 	_videoPacketQueue.push_back(packet);
- }
-
-void SaveAudioPacket(AVPacket* packet){
-	_audioPacketQueue.push_back(packet);
+auto_ptr<AVPacket> AVPipeline::GetNextEncodedVideoFrame(){
+	return _mediaParser->GetNextEncodedVideoFrame();
 }
 
-uint64_t GetPacketBufferedLength(){
-
+MediaParserState AVPipeline::GetMediaParserState(){
+    return _parserState;
 }
 
+double AVPipeline::GetVideoTimeBase(){
+	return av_q2d(_mediaInfo._videoTimeBase);
+}
 
+double AVPipeline::GetAudioTimeBase(){
+	return av_q2d(_mediaInfo._audioTimeBase);
+}
+
+auto_ptr<AVPacket> AVPipeline::GetNextEncodedAudioFrame(){
+	return _mediaParser->GetNextEncodedAudioFrame();
+}
 /*-------------------------bufferedAudioStreamer---------------------*/
 void BufferedAudioStreamer::attachAuxStreamer(){
 	if(!_soundHandler)
@@ -519,7 +501,6 @@ void AVPipeline::Seek(int32_t secPos){
 }
 
 void  AVPipeline::SeekAction(int32_t secPos){
-#if 1	
 	_seekPos = secPos;
 	if(_playOver)  return ;
 	if(_seekFlag){
@@ -536,7 +517,7 @@ void  AVPipeline::SeekAction(int32_t secPos){
 	//In the BT mode:seek is not same whith the custom mode
 		int64_t millPos = secPos*1000;
 		cout<<"seekPos = "<<secPos<<endl;
-		if(!_mediaParser->seek(millPos)){
+		if(!_mediaParser->Seek(millPos)){
 			setStatus(invalidTime);
 			_playbackClock.resume();
 			cout<<__FILE__<<__LINE__<<"seek failed"<<endl;
@@ -545,58 +526,15 @@ void  AVPipeline::SeekAction(int32_t secPos){
 		}
 	
 	_videoDecoder->clearVideoFrameQueue();
-#if ENABLE_SOUND
 	_audioDecoder->clearAudioFrameQueue();
 	_audioStreamer.cleanAudioQueue();
-#endif
-	_playHead.seekTo(_mediaParser->getRealSeekPos()+2);
+	_playHead.seekTo(_mediaParser->GetRealSeekPos()+2);
 	//decodingState(DEC_BUFFERING);//droped by lxn 20131118. after add the sound model.
 	//videoQueue and audioQueue were cleared ,so they need time to get the new decoded frames.
 	snailSleep(60000);//macoSecond
 	refreshVideoFrame(true);
 	_seekFlag = false;
 	return ;
-#else
-	cout<<"now to seek the seekPos = "<<secPos<<endl;
-	cout<<"current pos = "<<_playHead.getPosition()/1000;
-	if(_playOver)  return false ;
-	if(_seekFlag){
-		return ;
-	}
-
-	if(!_mediaParser.get()){
-		return ;
-	}
-	if(!_videoDecoder.get()){
-		return ;
-	}
-	_seekFlag = true;
-	//In the BT mode:seek is not same whith the custom mode
-	if(_btFlag){
-		_mediaParser->seek(0);
-	}else{
-		int64_t millPos = secPos*1000;
-		if(!_mediaParser->seek(millPos)){
-			setStatus(invalidTime);
-			_playbackClock.resume();
-			cout<<__FILE__<<__LINE__<<"seek failed"<<endl;
-			_seekFlag = false;
-			return ;
-		}
-	}
-	_videoDecoder->clearVideoFrameQueue();
-#if ENABLE_SOUND
-	_audioDecoder->clearAudioFrameQueue();
-	_audioStreamer.cleanAudioQueue();
-#endif
-	_playHead.seekTo(_mediaParser->getRealSeekPos()+2);
-	//decodingState(DEC_BUFFERING);//droped by lxn 20131118. after add the sound model.
-	//videoQueue and audioQueue were cleared ,so they need time to get the new decoded frames.
-	snail::timer::snailSleep(60000);//macoSecond
-	refreshVideoFrame(true);
-	_seekFlag = false;
-	return ;
-#endif
 }
 
 void AVPipeline::pause(){
@@ -613,26 +551,20 @@ void AVPipeline::PauseAction(){
     PlayControl::PlaybackStatus  curStatus = _playHead.getState();
     if(curStatus == PlayControl::PLAY_PLAYING){
         _playHead.setState(PlayControl::PLAY_PAUSED);
-#if ENABLE_SOUND
         _audioStreamer.detachAuxStreamer();
-#endif
     }else{
         _playHead.setState(PlayControl::PLAY_PLAYING);
-#if ENABLE_SOUND
         _audioStreamer.attachAuxStreamer();
-#endif
     }
 }
     
 void AVPipeline::Reset(){
 	boost::mutex::scoped_lock lock(_mutex);
-#if ENABLE_SOUND
 	_audioStreamer.cleanAudioQueue();
 	_audioStreamer.detachAuxStreamer();
-	_audioDecoder.reset();
-#endif
 	_videoDecoder.reset(); //this must before the mediaParser.reset(), beacause use the pointer of the _mediaParser
-	_mediaParser.reset();
+    _audioDecoder.reset();
+    _mediaParser.reset();
 	_imageFrame.reset();
 	_playOver = true;
 	_seekFlag = false;
