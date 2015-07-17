@@ -57,12 +57,14 @@ namespace MediaCore {
 
 class AudioDecoderFFmpeg : public AudioDecoder {
 public:
-	AudioDecoderFFmpeg(AVPipeline *pipeline);
+	AudioDecoderFFmpeg(MediaDecoderDelegate* delegate);
 	virtual ~AudioDecoderFFmpeg();
 	bool init();
 	AudioDecodedFrame* popAudioDecodedFrame();
 	virtual int64_t nextAudioFrameTimestamp();
 	virtual void clearAudioFrameQueue();
+    virtual bool IsBufferFull() override;
+    virtual bool IsBufferLowLevel() override;
 protected:
 	virtual void decodeAudioFrame();
 private:

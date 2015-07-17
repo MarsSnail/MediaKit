@@ -628,6 +628,7 @@ dependencies: /Users/linan/MediaKit/Source/MediaCore/main.cpp \
   /Users/linan/MediaKit/Source/MediaCore/media/VideoDecoder.h \
   /Users/linan/MediaKit/Source/MediaCore/base/ImageType.h \
   MediaCore/media/AudioDecodedFrame.h \
+  MediaCore/media/MediaDecoderDelegate.h \
   /Users/linan/MediaKit/Source/MediaCore/media/VideoDecodedFrame.h \
   MediaCore/AVPipeline.h ../depend/mac/include/boost/asio/io_service.hpp \
   ../depend/mac/include/boost/asio/detail/config.hpp \
@@ -835,4 +836,6 @@ dependencies: /Users/linan/MediaKit/Source/MediaCore/main.cpp \
   /Users/linan/MediaKit/Source/MediaCore/timer/SnailSleep.h \
   /Users/linan/MediaKit/Source/MediaCore/platform/Timer.h \
   /Users/linan/MediaKit/Source/MediaCore/platform/ThreadTimersManager.h \
-  MediaCore/media/VideoDecoderDelegate.h MediaCore/avPipelineDelegate.h
+  MediaCore/media/VideoDecoderDelegate.h \
+  /Users/linan/MediaKit/Source/MediaCore/media/MediaDecoder.h \
+  MediaCore/avPipelineDelegate.h

@@ -23,8 +23,8 @@
 
 namespace MediaCore {
 
-AudioDecoder::AudioDecoder(AVPipeline *pipeline):
-		_avpipeline(pipeline),
+AudioDecoder::AudioDecoder(MediaDecoderDelegate* delegate):
+		delegate_(delegate),
 		_audioDecoderThread(0),
 		_audioDecoderThreadBarrier(2),
 		_killThreadFlag(false){

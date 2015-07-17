@@ -476,9 +476,51 @@ dependencies: \
   ../depend/mac/include/boost/thread/condition.hpp \
   /Users/linan/MediaKit/Source/MediaCore/base/ImageType.h \
   MediaCore/media/AudioDecodedFrame.h \
-  /Users/linan/MediaKit/Source/MediaCore/media/VideoDecodedFrame.h \
-  ../depend/mac/include/libswresample/swresample.h \
-  ../depend/mac/include/libavutil/frame.h \
+  MediaCore/media/MediaDecoderDelegate.h \
+  /Users/linan/MediaKit/Source/MediaCore/base/CommonDef.h \
+  ../depend/mac/include/boost/function.hpp \
+  ../depend/mac/include/boost/preprocessor/iterate.hpp \
+  ../depend/mac/include/boost/preprocessor/iteration/iterate.hpp \
+  ../depend/mac/include/boost/preprocessor/array/elem.hpp \
+  ../depend/mac/include/boost/preprocessor/array/data.hpp \
+  ../depend/mac/include/boost/preprocessor/array/size.hpp \
+  ../depend/mac/include/boost/preprocessor/slot/slot.hpp \
+  ../depend/mac/include/boost/preprocessor/slot/detail/def.hpp \
+  ../depend/mac/include/boost/function/detail/prologue.hpp \
+  ../depend/mac/include/boost/config/no_tr1/functional.hpp \
+  ../depend/mac/include/boost/function/function_base.hpp \
+  ../depend/mac/include/boost/integer.hpp \
+  ../depend/mac/include/boost/type_traits/has_trivial_copy.hpp \
+  ../depend/mac/include/boost/type_traits/is_pod.hpp \
+  ../depend/mac/include/boost/type_traits/is_scalar.hpp \
+  ../depend/mac/include/boost/type_traits/is_copy_constructible.hpp \
+  ../depend/mac/include/boost/type_traits/add_reference.hpp \
+  ../depend/mac/include/boost/type_traits/has_trivial_destructor.hpp \
+  ../depend/mac/include/boost/type_traits/is_const.hpp \
+  ../depend/mac/include/boost/type_traits/composite_traits.hpp \
+  ../depend/mac/include/boost/type_traits/is_union.hpp \
+  ../depend/mac/include/boost/type_traits/alignment_of.hpp \
+  ../depend/mac/include/boost/type_traits/detail/size_t_trait_def.hpp \
+  ../depend/mac/include/boost/mpl/size_t.hpp \
+  ../depend/mac/include/boost/mpl/size_t_fwd.hpp \
+  ../depend/mac/include/boost/type_traits/detail/size_t_trait_undef.hpp \
+  ../depend/mac/include/boost/function_equal.hpp \
+  ../depend/mac/include/boost/function/function_fwd.hpp \
+  ../depend/mac/include/boost/preprocessor/enum.hpp \
+  ../depend/mac/include/boost/preprocessor/repetition/enum.hpp \
+  ../depend/mac/include/boost/preprocessor/enum_params.hpp \
+  ../depend/mac/include/boost/preprocessor/iteration/detail/iter/forward1.hpp \
+  ../depend/mac/include/boost/preprocessor/iteration/detail/bounds/lower1.hpp \
+  ../depend/mac/include/boost/preprocessor/slot/detail/shared.hpp \
+  ../depend/mac/include/boost/preprocessor/iteration/detail/bounds/upper1.hpp \
+  ../depend/mac/include/boost/function/detail/function_iterate.hpp \
+  ../depend/mac/include/boost/function/detail/maybe_include.hpp \
+  ../depend/mac/include/boost/function/function_template.hpp \
+  ../depend/mac/include/boost/detail/no_exceptions_support.hpp \
+  ../depend/mac/include/boost/core/no_exceptions_support.hpp \
+  ../depend/mac/include/boost/scoped_ptr.hpp \
+  ../depend/mac/include/boost/smart_ptr/scoped_ptr.hpp \
+  ../depend/mac/include/libavutil/imgutils.h \
   ../depend/mac/include/libavutil/avutil.h \
   ../depend/mac/include/libavutil/common.h \
   ../depend/mac/include/libavutil/attributes.h \
@@ -493,19 +535,26 @@ dependencies: \
   ../depend/mac/include/libavutil/log.h \
   ../depend/mac/include/libavutil/pixfmt.h \
   ../depend/mac/include/libavutil/old_pix_fmts.h \
-  ../depend/mac/include/libavutil/buffer.h \
-  ../depend/mac/include/libavutil/dict.h \
+  ../depend/mac/include/libavutil/pixdesc.h \
   ../depend/mac/include/libavutil/samplefmt.h \
-  ../depend/mac/include/libswresample/version.h \
-  ../depend/mac/include/libswscale/swscale.h \
-  ../depend/mac/include/libswscale/version.h \
+  ../depend/mac/include/libavutil/timestamp.h \
+  ../depend/mac/include/libavformat/avformat.h \
   ../depend/mac/include/libavcodec/avcodec.h \
+  ../depend/mac/include/libavutil/buffer.h \
   ../depend/mac/include/libavutil/cpu.h \
   ../depend/mac/include/libavutil/channel_layout.h \
+  ../depend/mac/include/libavutil/dict.h \
+  ../depend/mac/include/libavutil/frame.h \
   ../depend/mac/include/libavcodec/version.h \
   ../depend/mac/include/libavcodec/old_codec_ids.h \
+  ../depend/mac/include/libavformat/avio.h \
+  ../depend/mac/include/libavformat/version.h \
+  ../depend/mac/include/libswscale/swscale.h \
+  ../depend/mac/include/libswscale/version.h \
+  ../depend/mac/include/libswresample/swresample.h \
+  ../depend/mac/include/libswresample/version.h \
+  /Users/linan/MediaKit/Source/MediaCore/media/VideoDecodedFrame.h \
   /Users/linan/MediaKit/Source/MediaCore/AVPipeline.h \
-  ../depend/mac/include/boost/smart_ptr/scoped_ptr.hpp \
   ../depend/mac/include/boost/asio/io_service.hpp \
   ../depend/mac/include/boost/asio/detail/config.hpp \
   ../depend/mac/include/boost/asio/async_result.hpp \
@@ -580,57 +629,8 @@ dependencies: \
   ../depend/mac/include/boost/asio/detail/impl/kqueue_reactor.ipp \
   ../depend/mac/include/boost/asio/impl/io_service.ipp \
   ../depend/mac/include/boost/asio/detail/scoped_ptr.hpp \
-  ../depend/mac/include/boost/function.hpp \
-  ../depend/mac/include/boost/preprocessor/iterate.hpp \
-  ../depend/mac/include/boost/preprocessor/iteration/iterate.hpp \
-  ../depend/mac/include/boost/preprocessor/array/elem.hpp \
-  ../depend/mac/include/boost/preprocessor/array/data.hpp \
-  ../depend/mac/include/boost/preprocessor/array/size.hpp \
-  ../depend/mac/include/boost/preprocessor/slot/slot.hpp \
-  ../depend/mac/include/boost/preprocessor/slot/detail/def.hpp \
-  ../depend/mac/include/boost/function/detail/prologue.hpp \
-  ../depend/mac/include/boost/config/no_tr1/functional.hpp \
-  ../depend/mac/include/boost/function/function_base.hpp \
-  ../depend/mac/include/boost/integer.hpp \
-  ../depend/mac/include/boost/type_traits/has_trivial_copy.hpp \
-  ../depend/mac/include/boost/type_traits/is_pod.hpp \
-  ../depend/mac/include/boost/type_traits/is_scalar.hpp \
-  ../depend/mac/include/boost/type_traits/is_copy_constructible.hpp \
-  ../depend/mac/include/boost/type_traits/add_reference.hpp \
-  ../depend/mac/include/boost/type_traits/has_trivial_destructor.hpp \
-  ../depend/mac/include/boost/type_traits/is_const.hpp \
-  ../depend/mac/include/boost/type_traits/composite_traits.hpp \
-  ../depend/mac/include/boost/type_traits/is_union.hpp \
-  ../depend/mac/include/boost/type_traits/alignment_of.hpp \
-  ../depend/mac/include/boost/type_traits/detail/size_t_trait_def.hpp \
-  ../depend/mac/include/boost/mpl/size_t.hpp \
-  ../depend/mac/include/boost/mpl/size_t_fwd.hpp \
-  ../depend/mac/include/boost/type_traits/detail/size_t_trait_undef.hpp \
-  ../depend/mac/include/boost/function_equal.hpp \
-  ../depend/mac/include/boost/function/function_fwd.hpp \
-  ../depend/mac/include/boost/preprocessor/enum.hpp \
-  ../depend/mac/include/boost/preprocessor/repetition/enum.hpp \
-  ../depend/mac/include/boost/preprocessor/enum_params.hpp \
-  ../depend/mac/include/boost/preprocessor/iteration/detail/iter/forward1.hpp \
-  ../depend/mac/include/boost/preprocessor/iteration/detail/bounds/lower1.hpp \
-  ../depend/mac/include/boost/preprocessor/slot/detail/shared.hpp \
-  ../depend/mac/include/boost/preprocessor/iteration/detail/bounds/upper1.hpp \
-  ../depend/mac/include/boost/function/detail/function_iterate.hpp \
-  ../depend/mac/include/boost/function/detail/maybe_include.hpp \
-  ../depend/mac/include/boost/function/function_template.hpp \
-  ../depend/mac/include/boost/detail/no_exceptions_support.hpp \
-  ../depend/mac/include/boost/core/no_exceptions_support.hpp \
   /Users/linan/MediaKit/Source/MediaCore/media/AudioDecoder.h \
-  MediaCore/media/MediaParser.h \
-  /Users/linan/MediaKit/Source/MediaCore/base/CommonDef.h \
-  ../depend/mac/include/boost/scoped_ptr.hpp \
-  ../depend/mac/include/libavutil/imgutils.h \
-  ../depend/mac/include/libavutil/pixdesc.h \
-  ../depend/mac/include/libavutil/timestamp.h \
-  ../depend/mac/include/libavformat/avformat.h \
-  ../depend/mac/include/libavformat/avio.h \
-  ../depend/mac/include/libavformat/version.h \
-  ../depend/mac/include/boost/thread.hpp \
+  MediaCore/media/MediaParser.h ../depend/mac/include/boost/thread.hpp \
   ../depend/mac/include/boost/thread/once.hpp \
   ../depend/mac/include/boost/thread/pthread/once_atomic.hpp \
   ../depend/mac/include/boost/atomic.hpp \
@@ -830,6 +830,7 @@ dependencies: \
   MediaCore/platform/ThreadTimersManager.h \
   /Users/linan/MediaKit/Source/MediaCore/media/MediaParserDelegate.h \
   /Users/linan/MediaKit/Source/MediaCore/media/VideoDecoderDelegate.h \
+  /Users/linan/MediaKit/Source/MediaCore/media/MediaDecoder.h \
   /Users/linan/MediaKit/Source/MediaCore/base/SnailException.h \
   MediaCore/media/ffmpeg/MediaParserFFmpeg.h \
   /Users/linan/MediaKit/Source/MediaCore/media/MediaParserBase.h \

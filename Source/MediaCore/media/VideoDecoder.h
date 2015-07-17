@@ -29,46 +29,30 @@
 #include <deque>
 #include "ImageType.h"
 #include "AudioDecodedFrame.h"
+#include "MediaDecoderDelegate.h"
 
 using namespace std;
 
 
 namespace MediaCore {
     class VideoDecoderDelegate;
+    class VideoDecodedFrame;
+    
 
 //no copyable
 class VideoDecoder {
 public:
-	VideoDecoder(VideoDecoderDelegate* delegate);
-	virtual  ~VideoDecoder();
+    static VideoDecoder* CreateVideoDecoder(MediaDecoderDelegate* delegate);
+    virtual  ~VideoDecoder(){}
 	virtual bool Init() = 0;
 	virtual auto_ptr<VideoImage> getVideoImage() = 0;
 	virtual int64_t nextVideoFrameTimestamp() = 0;
+    virtual VideoDecodedFrame* GetDecodedVideoFrame(int64_t timestamp) = 0;
 	virtual void clearVideoFrameQueue() = 0;
 	virtual int videoFrameQueueLength() = 0;
-	bool IsDecodeComplete() {return _isDecodeComplete;}
-    
-    //audio decoder
-    virtual AudioDecodedFrame* popAudioDecodedFrame()=0;
-    virtual int64_t nextAudioFrameTimestamp() = 0;
-    virtual void clearAudioFrameQueue() = 0;
-
-protected:
-	void startVideoDecoderThread();
-	static void decoderLoopStarter(VideoDecoder *videoDecoder);
-	void decoderLoop();
-	//this virtual function must be implemented by the child class
-	virtual bool decodeFrame() = 0;
-	//control the video decoder thread life time
-	bool continueRunThread();
-	void setKillThread();
-protected:
-	bool _killThreadFlag;
-	bool _isDecodeComplete;
-	VideoDecoderDelegate *_delegate;
-	//fileds for video decoder thread
-	auto_ptr<boost::thread> _videoDecoderThread;
-	mutable boost::mutex _stopThreadMutex; //used for get/set _stopThread
+    virtual bool IsBufferFull() = 0;
+    virtual bool IsBufferLowLevel() = 0;
+    virtual bool DecodeVideoFrame() = 0;
 };
 
 } // namespace

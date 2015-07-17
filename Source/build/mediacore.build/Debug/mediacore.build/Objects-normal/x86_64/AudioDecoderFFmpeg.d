@@ -833,4 +833,6 @@ dependencies: \
   /Users/linan/MediaKit/Source/MediaCore/platform/Timer.h \
   MediaCore/platform/ThreadTimersManager.h \
   /Users/linan/MediaKit/Source/MediaCore/media/VideoDecoder.h \
-  /Users/linan/MediaKit/Source/MediaCore/media/VideoDecoderDelegate.h
+  MediaCore/media/MediaDecoderDelegate.h \
+  /Users/linan/MediaKit/Source/MediaCore/media/VideoDecoderDelegate.h \
+  /Users/linan/MediaKit/Source/MediaCore/media/MediaDecoder.h

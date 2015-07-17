@@ -826,5 +826,7 @@ dependencies: \
   MediaCore/platform/ThreadTimersManager.h \
   /Users/linan/MediaKit/Source/MediaCore/media/VideoDecoder.h \
   ../depend/mac/include/boost/thread/condition.hpp \
+  MediaCore/media/MediaDecoderDelegate.h \
   /Users/linan/MediaKit/Source/MediaCore/media/MediaParserDelegate.h \
-  /Users/linan/MediaKit/Source/MediaCore/media/VideoDecoderDelegate.h
+  /Users/linan/MediaKit/Source/MediaCore/media/VideoDecoderDelegate.h \
+  /Users/linan/MediaKit/Source/MediaCore/media/MediaDecoder.h

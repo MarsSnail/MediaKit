@@ -35,34 +35,24 @@ extern "C"{
 using namespace std;
 
 namespace MediaCore {
+    class MediaDecoderDelegate;
 
 class VideoDecoderFFmpeg : public VideoDecoder{
 public:
-	VideoDecoderFFmpeg(VideoDecoderDelegate *delegate);
+	VideoDecoderFFmpeg(MediaDecoderDelegate *delegate);
 	
 	virtual ~VideoDecoderFFmpeg() override;
 	virtual bool Init() override;
-    virtual bool decodeFrame() override;
 	virtual auto_ptr<VideoImage> getVideoImage() override;
 	virtual int64_t nextVideoFrameTimestamp() override;
 	virtual void clearVideoFrameQueue() override;
 	virtual int videoFrameQueueLength() override;
-    
-    virtual AudioDecodedFrame* popAudioDecodedFrame() override;
-    virtual int64_t nextAudioFrameTimestamp() override;
-    virtual void clearAudioFrameQueue() override;
+    virtual bool IsBufferFull() override;
+    virtual bool IsBufferLowLevel() override;
+    virtual VideoDecodedFrame* GetDecodedVideoFrame(int64_t timestamp) override;
+    virtual bool DecodeVideoFrame();
 
 private:
-	bool init();
-    bool InitAudioDecoder();
-    int AudioQueueLength();
-    bool AudioQueueEmpty();
-    int64_t convertAudioTime(double time) const;
-    void decodeAudioFrame();
-    void pushAudioDecodedFrame(AudioDecodedFrame* frame);
-    
-    
-	bool decodeVideoFrame();
 	void pushDecodedVideoFrame(AVFrame *frame);
 	VideoDecodedFrame* popDecodedVideoFrame();
 	//function for operate the video decoded frame queue
@@ -74,6 +64,8 @@ private:
 	VideoImage *yuvToRgb(AVFrame* frame);
 	VideoImage *saveYuv(AVFrame *frame);
 private:
+    
+    MediaDecoderDelegate* delegate_;
     //video
 	AVCodecContext *_videoCodecCtx;
 	AVCodec *_videoCodec;

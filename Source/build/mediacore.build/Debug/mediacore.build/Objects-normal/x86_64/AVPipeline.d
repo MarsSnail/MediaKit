@@ -823,8 +823,10 @@ dependencies: /Users/linan/MediaKit/Source/MediaCore/AVPipeline.cpp \
   MediaCore/platform/ThreadTimersManager.h \
   /Users/linan/MediaKit/Source/MediaCore/media/VideoDecoder.h \
   ../depend/mac/include/boost/thread/condition.hpp \
+  MediaCore/media/MediaDecoderDelegate.h \
   /Users/linan/MediaKit/Source/MediaCore/media/MediaParserDelegate.h \
   /Users/linan/MediaKit/Source/MediaCore/media/VideoDecoderDelegate.h \
+  /Users/linan/MediaKit/Source/MediaCore/media/MediaDecoder.h \
   /Users/linan/MediaKit/Source/MediaCore/network/Url.h \
   /Users/linan/MediaKit/Source/MediaCore/network/InputStreamProvider.h \
   MediaCore/network/IOChannel.h MediaCore/network/FileStreamProvider.h \

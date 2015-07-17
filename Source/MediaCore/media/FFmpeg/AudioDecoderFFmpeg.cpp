@@ -22,17 +22,18 @@
 #include "MediaParserFFmpeg.h"
 #include "SnailException.h"
 #include "AVPipeline.h"
+#include "MediaDecoderDelegate.h"
 
 namespace MediaCore {
     
-    AudioDecoderFFmpeg::AudioDecoderFFmpeg(AVPipeline *pipeline):
-    AudioDecoder(pipeline),
+    AudioDecoderFFmpeg::AudioDecoderFFmpeg(MediaDecoderDelegate *delegate):
+    AudioDecoder(delegate),
     _swrCtx(0),
     _audioTimeBase(0){
         if(!init()){
             throw SnailException("ERROR: Create the Audio Decoder(FFmpeg) failed");
         }
-        startThread();
+        //startThread();
     }
     AudioDecoderFFmpeg::~AudioDecoderFFmpeg(){
         cout<<"in the function ~AudioDecoderFFmpeg"<<endl;
@@ -48,20 +49,25 @@ namespace MediaCore {
     bool AudioDecoderFFmpeg::init(){
         _audioCodecCtx = global_getAudioCtx();
         _audioCodec = global_getAudioCodec();
-        _audioTimeBase = _avpipeline->GetAudioTimeBase();
+        _audioTimeBase = delegate_->GetAudioTimeBase();
         if(!_audioCodecCtx || !_audioCodec || !_audioTimeBase){
             return false;
         }else
             return true;
     }
     
+    bool AudioDecoderFFmpeg::IsBufferFull(){
+        std::cout<<"audio Queue length:"<<queueLength()<<std::endl;
+        return queueLength() >= 12;
+    }
+    
+    bool AudioDecoderFFmpeg::IsBufferLowLevel(){
+        return queueLength() <= 4;
+    }
     
     void AudioDecoderFFmpeg::pushAudioDecodedFrame(AudioDecodedFrame *frame){
         boost::mutex::scoped_lock lock(queueMutex);
         _audioDecodedFrameQueue.push_back(frame);
-        if(queueLength()>=4){
-            _decoderThreadWakeup.wait(lock);
-        }
     }
     AudioDecodedFrame *AudioDecoderFFmpeg::popAudioDecodedFrame(){
         boost::mutex::scoped_lock lock(queueMutex);
@@ -71,9 +77,6 @@ namespace MediaCore {
             _audioDecodedFrameQueue.pop_front();
         }else{
             cout<<"audio decoded frame queue empty"<<endl;
-        }
-        if(queueLength()<=1){
-            _decoderThreadWakeup.notify_all();
         }
         return resFrame;
     }
@@ -102,11 +105,13 @@ namespace MediaCore {
     }
     
     void AudioDecoderFFmpeg::decodeAudioFrame(){
-        auto_ptr<AVPacket> pkt = _avpipeline->GetNextEncodedAudioFrame();
+        if(IsBufferFull())
+            return ;
+        auto_ptr<AVPacket> pkt = delegate_->GetNextEncodedAudioFrame();
         
         if(!pkt.get() || !pkt->buf->buffer){
             //when play over if as not call the close then block the video Decoder thread
-            if(_avpipeline->IsParseComplete()){
+            if(delegate_->IsParseComplete()){
                 boost::mutex::scoped_lock lock(queueMutex);
                 cout<<"now parsed completely and the audio Packet queue is empty,so block the audio decoder Thread"<<endl;
                 _decoderThreadWakeup.wait(lock);

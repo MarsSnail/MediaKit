@@ -28,7 +28,6 @@
 #include "boost/thread.hpp"
 #include "AudioDecodedFrame.h"
 
-using MediaCore::AudioDecodedFrame;
 using std::cout;
 using std::cin;
 using std::endl;
@@ -36,29 +35,32 @@ using std::endl;
 namespace MediaCore {
 
 class AVPipeline;
+class MediaDecoderDelegate;
 
 class AudioDecoder{
 public:
-	AudioDecoder(AVPipeline *pipeline);
+	AudioDecoder(MediaDecoderDelegate* delegate);
 	virtual ~AudioDecoder();
 
 	virtual AudioDecodedFrame* popAudioDecodedFrame()=0;
 	virtual int64_t nextAudioFrameTimestamp() = 0;
 	virtual void clearAudioFrameQueue() = 0;
-
+    virtual bool IsBufferFull() = 0;
+    virtual bool IsBufferLowLevel() = 0;
+    virtual void decodeAudioFrame() =0;
+    
 protected:
 	//the functions work for decoder thread
 	void startThread();
 	static void decoderLooperStarter(AudioDecoder *audioDecoder);
 	void decoderLoop();
-	virtual void decodeAudioFrame() =0; //main funtion for thread main loop
-	//control the thread life time
+    //control the thread life time
 	void  setKillThread();
 	bool continueRun();
 
 protected:
 	//audio decoder thread
-	AVPipeline* _avpipeline;
+	MediaDecoderDelegate* delegate_;
 	std::auto_ptr<boost::thread> _audioDecoderThread;
 	boost::barrier _audioDecoderThreadBarrier;
 	bool _killThreadFlag;
