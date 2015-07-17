@@ -47,3 +47,17 @@ Temporary Items
 *.o
 
 *.o
+
+*.o
+
+Source/MediaCore/tags
+
+Source/MediaCore/a.out
+
+*.pbxproj
+
+Source/build/mediacore.build/Debug/All.build/dgph
+
+Source/build/Debug/libmediacore.dylib
+
+Source/build/
