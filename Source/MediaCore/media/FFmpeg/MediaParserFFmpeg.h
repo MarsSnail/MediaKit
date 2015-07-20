@@ -69,8 +69,8 @@ public:
 	virtual bool 	Seek(int64_t millPos) override;
 	virtual int64_t GetRealSeekPos()  const override{return _realSeekPos;}	
 	virtual int64_t GetKeyFrameFilePosByIndex(int index) override;
-	virtual auto_ptr<AVPacket> GetNextEncodedVideoFrame() override;
-	virtual auto_ptr<AVPacket> GetNextEncodedAudioFrame() override;
+    virtual boost::shared_ptr<AVPacket> GetNextEncodedVideoFrame() override;
+    virtual boost::shared_ptr<AVPacket> GetNextEncodedAudioFrame() override;
 	virtual void SetBufferTime(uint64_t) override;
 	virtual uint64_t GetBufferTime() const override;
 	virtual uint64_t GetByteLoaded() const override;

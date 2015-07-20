@@ -54,6 +54,8 @@ extern "C"{
 using namespace std;
 
 namespace MediaCore {
+    
+    class MediaDecoderDelegate;
 
 class AudioDecoderFFmpeg : public AudioDecoder {
 public:
@@ -73,6 +75,8 @@ private:
 	void pushAudioDecodedFrame(AudioDecodedFrame *frame);
 	int64_t convertTime(double time)const;
 private:
+    
+    MediaDecoderDelegate* _media_decoder_delegate;
 	AVCodecContext *_audioCodecCtx;
 	AVCodec *_audioCodec;
 	SwrContext *_swrCtx;

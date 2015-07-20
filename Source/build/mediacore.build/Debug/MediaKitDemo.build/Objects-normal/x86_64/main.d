@@ -705,83 +705,6 @@ dependencies: /Users/linan/MediaKit/Source/MediaCore/main.cpp \
   ../depend/mac/include/boost/asio/impl/io_service.ipp \
   ../depend/mac/include/boost/asio/detail/scoped_ptr.hpp \
   /Users/linan/MediaKit/Source/MediaCore/media/AudioDecoder.h \
-  ../depend/mac/include/boost/thread.hpp \
-  ../depend/mac/include/boost/thread/once.hpp \
-  ../depend/mac/include/boost/thread/pthread/once_atomic.hpp \
-  ../depend/mac/include/boost/atomic.hpp \
-  ../depend/mac/include/boost/atomic/atomic.hpp \
-  ../depend/mac/include/boost/atomic/capabilities.hpp \
-  ../depend/mac/include/boost/atomic/detail/config.hpp \
-  ../depend/mac/include/boost/atomic/detail/platform.hpp \
-  ../depend/mac/include/boost/atomic/detail/int_sizes.hpp \
-  ../depend/mac/include/boost/atomic/detail/caps_gcc_atomic.hpp \
-  ../depend/mac/include/boost/atomic/fences.hpp \
-  ../depend/mac/include/boost/memory_order.hpp \
-  ../depend/mac/include/boost/atomic/detail/operations.hpp \
-  ../depend/mac/include/boost/atomic/detail/operations_lockfree.hpp \
-  ../depend/mac/include/boost/atomic/detail/ops_gcc_atomic.hpp \
-  ../depend/mac/include/boost/atomic/detail/storage_type.hpp \
-  ../depend/mac/include/boost/atomic/detail/operations_fwd.hpp \
-  ../depend/mac/include/boost/atomic/detail/ops_gcc_x86_dcas.hpp \
-  ../depend/mac/include/boost/atomic/detail/ops_cas_based.hpp \
-  ../depend/mac/include/boost/atomic/detail/ops_emulated.hpp \
-  ../depend/mac/include/boost/atomic/detail/lockpool.hpp \
-  ../depend/mac/include/boost/atomic/detail/link.hpp \
-  ../depend/mac/include/boost/atomic/atomic_flag.hpp \
-  ../depend/mac/include/boost/atomic/detail/atomic_flag.hpp \
-  ../depend/mac/include/boost/atomic/detail/atomic_template.hpp \
-  ../depend/mac/include/boost/type_traits/is_signed.hpp \
-  ../depend/mac/include/boost/atomic/detail/casts.hpp \
-  ../depend/mac/include/boost/thread/recursive_mutex.hpp \
-  ../depend/mac/include/boost/thread/pthread/recursive_mutex.hpp \
-  ../depend/mac/include/boost/thread/tss.hpp \
-  ../depend/mac/include/boost/thread/locks.hpp \
-  ../depend/mac/include/boost/thread/lock_algorithms.hpp \
-  ../depend/mac/include/boost/thread/future.hpp \
-  ../depend/mac/include/boost/thread/detail/invoker.hpp \
-  ../depend/mac/include/boost/thread/csbl/tuple.hpp \
-  ../depend/mac/include/boost/tuple/tuple.hpp \
-  ../depend/mac/include/boost/tuple/detail/tuple_basic.hpp \
-  ../depend/mac/include/boost/type_traits/cv_traits.hpp \
-  ../depend/mac/include/boost/type_traits/add_const.hpp \
-  ../depend/mac/include/boost/type_traits/add_volatile.hpp \
-  ../depend/mac/include/boost/type_traits/add_cv.hpp \
-  ../depend/mac/include/boost/type_traits/remove_const.hpp \
-  ../depend/mac/include/boost/type_traits/remove_volatile.hpp \
-  ../depend/mac/include/boost/type_traits/function_traits.hpp \
-  ../depend/mac/include/boost/utility/swap.hpp \
-  ../depend/mac/include/boost/core/swap.hpp \
-  ../depend/mac/include/boost/thread/detail/variadic_header.hpp \
-  ../depend/mac/include/boost/thread/detail/variadic_footer.hpp \
-  ../depend/mac/include/boost/thread/exceptional_ptr.hpp \
-  ../depend/mac/include/boost/exception_ptr.hpp \
-  ../depend/mac/include/boost/exception/detail/exception_ptr.hpp \
-  ../depend/mac/include/boost/thread/futures/future_error.hpp \
-  ../depend/mac/include/boost/thread/futures/future_error_code.hpp \
-  ../depend/mac/include/boost/thread/futures/future_status.hpp \
-  ../depend/mac/include/boost/thread/futures/is_future_type.hpp \
-  ../depend/mac/include/boost/thread/futures/launch.hpp \
-  ../depend/mac/include/boost/thread/futures/wait_for_all.hpp \
-  ../depend/mac/include/boost/thread/futures/wait_for_any.hpp \
-  ../depend/mac/include/boost/next_prior.hpp \
-  ../depend/mac/include/boost/type_traits/integral_promotion.hpp \
-  ../depend/mac/include/boost/type_traits/make_signed.hpp \
-  ../depend/mac/include/boost/type_traits/has_plus.hpp \
-  ../depend/mac/include/boost/type_traits/detail/has_binary_operator.hpp \
-  ../depend/mac/include/boost/type_traits/is_fundamental.hpp \
-  ../depend/mac/include/boost/type_traits/remove_pointer.hpp \
-  ../depend/mac/include/boost/type_traits/has_plus_assign.hpp \
-  ../depend/mac/include/boost/type_traits/has_minus.hpp \
-  ../depend/mac/include/boost/type_traits/has_minus_assign.hpp \
-  ../depend/mac/include/boost/scoped_array.hpp \
-  ../depend/mac/include/boost/smart_ptr/scoped_array.hpp \
-  ../depend/mac/include/boost/thread/csbl/memory/unique_ptr.hpp \
-  ../depend/mac/include/boost/move/unique_ptr.hpp \
-  ../depend/mac/include/boost/move/detail/unique_ptr_meta_utils.hpp \
-  ../depend/mac/include/boost/move/default_delete.hpp \
-  ../depend/mac/include/boost/move/make_unique.hpp \
-  ../depend/mac/include/boost/detail/atomic_undef_macros.hpp \
-  ../depend/mac/include/boost/detail/atomic_redef_macros.hpp \
   /Users/linan/MediaKit/Source/MediaCore/media/PlayControl.h \
   /Users/linan/MediaKit/Source/MediaCore/timer/SystemClock.h \
   /Users/linan/MediaKit/Source/MediaCore/timer/VirtualClock.h \
@@ -836,6 +759,5 @@ dependencies: /Users/linan/MediaKit/Source/MediaCore/main.cpp \
   /Users/linan/MediaKit/Source/MediaCore/timer/SnailSleep.h \
   /Users/linan/MediaKit/Source/MediaCore/platform/Timer.h \
   /Users/linan/MediaKit/Source/MediaCore/platform/ThreadTimersManager.h \
-  MediaCore/media/VideoDecoderDelegate.h \
   /Users/linan/MediaKit/Source/MediaCore/media/MediaDecoder.h \
   MediaCore/avPipelineDelegate.h

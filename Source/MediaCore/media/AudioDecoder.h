@@ -20,50 +20,21 @@
 
 #ifndef AUDIODECODER_H_
 #define AUDIODECODER_H_
-#include "SnailConfig.h"
-#include "MediaParser.h"
-#include <memory>
 #include <stdint.h>
-#include <iostream>
-#include "boost/thread.hpp"
-#include "AudioDecodedFrame.h"
-
-using std::cout;
-using std::cin;
-using std::endl;
 
 namespace MediaCore {
 
-class AVPipeline;
-class MediaDecoderDelegate;
-
+    class AudioDecodedFrame;
+    
 class AudioDecoder{
 public:
-	AudioDecoder(MediaDecoderDelegate* delegate);
-	virtual ~AudioDecoder();
-
+    virtual ~AudioDecoder(){}
 	virtual AudioDecodedFrame* popAudioDecodedFrame()=0;
 	virtual int64_t nextAudioFrameTimestamp() = 0;
 	virtual void clearAudioFrameQueue() = 0;
     virtual bool IsBufferFull() = 0;
     virtual bool IsBufferLowLevel() = 0;
     virtual void decodeAudioFrame() =0;
-    
-protected:
-	//the functions work for decoder thread
-	void startThread();
-	static void decoderLooperStarter(AudioDecoder *audioDecoder);
-	void decoderLoop();
-    //control the thread life time
-	void  setKillThread();
-	bool continueRun();
-
-protected:
-	//audio decoder thread
-	MediaDecoderDelegate* delegate_;
-	std::auto_ptr<boost::thread> _audioDecoderThread;
-	boost::barrier _audioDecoderThreadBarrier;
-	bool _killThreadFlag;
 };//class AudioDecoder
 
 } // namespace

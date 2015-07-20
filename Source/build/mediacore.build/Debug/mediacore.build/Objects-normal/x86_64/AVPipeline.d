@@ -329,7 +329,62 @@ dependencies: /Users/linan/MediaKit/Source/MediaCore/AVPipeline.cpp \
   ../depend/mac/include/boost/asio/impl/io_service.ipp \
   ../depend/mac/include/boost/asio/detail/scoped_ptr.hpp \
   /Users/linan/MediaKit/Source/MediaCore/media/AudioDecoder.h \
-  MediaCore/media/MediaParser.h ../depend/mac/include/boost/thread.hpp \
+  /Users/linan/MediaKit/Source/MediaCore/base/ImageType.h \
+  /Users/linan/MediaKit/Source/MediaCore/media/MediaParser.h \
+  /Users/linan/MediaKit/Source/MediaCore/media/PlayControl.h \
+  /Users/linan/MediaKit/Source/MediaCore/timer/SystemClock.h \
+  MediaCore/timer/VirtualClock.h \
+  /Users/linan/MediaKit/Source/MediaCore/sound/SoundHandler.h \
+  MediaCore/sound/InputStream.h MediaCore/sound/AuxStream.h \
+  /Users/linan/MediaKit/Source/MediaCore/sound/sdl/SoundHandlerSDL.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_audio.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_stdinc.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_config.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_platform.h \
+  ../depend/mac/framework/SDL2.framework/Headers/begin_code.h \
+  ../depend/mac/framework/SDL2.framework/Headers/close_code.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_config_macosx.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_error.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_endian.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_mutex.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_thread.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_atomic.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_rwops.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_main.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_assert.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_clipboard.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_cpuinfo.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_events.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_video.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_pixels.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_rect.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_surface.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_blendmode.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_keyboard.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_keycode.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_scancode.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_mouse.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_joystick.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_gamecontroller.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_quit.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_gesture.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_touch.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_filesystem.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_haptic.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_hints.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_loadso.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_log.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_messagebox.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_power.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_render.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_system.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_timer.h \
+  ../depend/mac/framework/SDL2.framework/Headers/SDL_version.h \
+  /Users/linan/MediaKit/Source/MediaCore/timer/SnailSleep.h \
+  /Users/linan/MediaKit/Source/MediaCore/platform/Timer.h \
+  MediaCore/platform/ThreadTimersManager.h \
+  /Users/linan/MediaKit/Source/MediaCore/media/VideoDecoder.h \
   ../depend/mac/include/boost/thread/thread.hpp \
   ../depend/mac/include/boost/thread/thread_only.hpp \
   ../depend/mac/include/boost/thread/detail/platform.hpp \
@@ -622,37 +677,16 @@ dependencies: /Users/linan/MediaKit/Source/MediaCore/AVPipeline.cpp \
   ../depend/mac/include/boost/thread/detail/thread_group.hpp \
   ../depend/mac/include/boost/thread/shared_mutex.hpp \
   ../depend/mac/include/boost/thread/pthread/shared_mutex.hpp \
-  ../depend/mac/include/boost/thread/once.hpp \
-  ../depend/mac/include/boost/thread/pthread/once_atomic.hpp \
-  ../depend/mac/include/boost/atomic.hpp \
-  ../depend/mac/include/boost/atomic/atomic.hpp \
-  ../depend/mac/include/boost/atomic/capabilities.hpp \
-  ../depend/mac/include/boost/atomic/detail/config.hpp \
-  ../depend/mac/include/boost/atomic/detail/platform.hpp \
-  ../depend/mac/include/boost/atomic/detail/int_sizes.hpp \
-  ../depend/mac/include/boost/atomic/detail/caps_gcc_atomic.hpp \
-  ../depend/mac/include/boost/atomic/fences.hpp \
-  ../depend/mac/include/boost/memory_order.hpp \
-  ../depend/mac/include/boost/atomic/detail/operations.hpp \
-  ../depend/mac/include/boost/atomic/detail/operations_lockfree.hpp \
-  ../depend/mac/include/boost/atomic/detail/ops_gcc_atomic.hpp \
-  ../depend/mac/include/boost/atomic/detail/storage_type.hpp \
-  ../depend/mac/include/boost/atomic/detail/operations_fwd.hpp \
-  ../depend/mac/include/boost/atomic/detail/ops_gcc_x86_dcas.hpp \
-  ../depend/mac/include/boost/atomic/detail/ops_cas_based.hpp \
-  ../depend/mac/include/boost/atomic/detail/ops_emulated.hpp \
-  ../depend/mac/include/boost/atomic/detail/lockpool.hpp \
-  ../depend/mac/include/boost/atomic/detail/link.hpp \
-  ../depend/mac/include/boost/atomic/atomic_flag.hpp \
-  ../depend/mac/include/boost/atomic/detail/atomic_flag.hpp \
-  ../depend/mac/include/boost/atomic/detail/atomic_template.hpp \
-  ../depend/mac/include/boost/type_traits/is_signed.hpp \
-  ../depend/mac/include/boost/atomic/detail/casts.hpp \
-  ../depend/mac/include/boost/thread/recursive_mutex.hpp \
-  ../depend/mac/include/boost/thread/pthread/recursive_mutex.hpp \
-  ../depend/mac/include/boost/thread/tss.hpp \
-  ../depend/mac/include/boost/thread/locks.hpp \
-  ../depend/mac/include/boost/thread/lock_algorithms.hpp \
+  ../depend/mac/include/boost/thread/condition.hpp \
+  MediaCore/media/AudioDecodedFrame.h \
+  MediaCore/media/MediaDecoderDelegate.h \
+  /Users/linan/MediaKit/Source/MediaCore/media/MediaParserDelegate.h \
+  /Users/linan/MediaKit/Source/MediaCore/media/MediaDecoder.h \
+  /Users/linan/MediaKit/Source/MediaCore/network/Url.h \
+  /Users/linan/MediaKit/Source/MediaCore/network/InputStreamProvider.h \
+  MediaCore/network/IOChannel.h MediaCore/network/FileStreamProvider.h \
+  /Users/linan/MediaKit/Source/MediaCore/media/ffmpeg/MediaParserFFmpeg.h \
+  /Users/linan/MediaKit/Source/MediaCore/media/MediaParserBase.h \
   ../depend/mac/include/boost/thread/barrier.hpp \
   ../depend/mac/include/boost/thread/detail/nullary_function.hpp \
   ../depend/mac/include/boost/thread/detail/memory.hpp \
@@ -721,6 +755,42 @@ dependencies: /Users/linan/MediaKit/Source/MediaCore/AVPipeline.cpp \
   ../depend/mac/include/boost/mpl/aux_/config/has_xxx.hpp \
   ../depend/mac/include/boost/mpl/aux_/config/msvc_typename.hpp \
   ../depend/mac/include/boost/utility/detail/result_of_iterate.hpp \
+  /Users/linan/MediaKit/Source/MediaCore/platform/PlatformType.h \
+  /Users/linan/MediaKit/Source/MediaCore/media/ffmpeg/VideoDecoderFFmpeg.h \
+  /Users/linan/MediaKit/Source/MediaCore/media/VideoDecodedFrame.h \
+  /Users/linan/MediaKit/Source/MediaCore/media/ffmpeg/AudioDecoderFFmpeg.h \
+  ../depend/mac/include/boost/thread.hpp \
+  ../depend/mac/include/boost/thread/once.hpp \
+  ../depend/mac/include/boost/thread/pthread/once_atomic.hpp \
+  ../depend/mac/include/boost/atomic.hpp \
+  ../depend/mac/include/boost/atomic/atomic.hpp \
+  ../depend/mac/include/boost/atomic/capabilities.hpp \
+  ../depend/mac/include/boost/atomic/detail/config.hpp \
+  ../depend/mac/include/boost/atomic/detail/platform.hpp \
+  ../depend/mac/include/boost/atomic/detail/int_sizes.hpp \
+  ../depend/mac/include/boost/atomic/detail/caps_gcc_atomic.hpp \
+  ../depend/mac/include/boost/atomic/fences.hpp \
+  ../depend/mac/include/boost/memory_order.hpp \
+  ../depend/mac/include/boost/atomic/detail/operations.hpp \
+  ../depend/mac/include/boost/atomic/detail/operations_lockfree.hpp \
+  ../depend/mac/include/boost/atomic/detail/ops_gcc_atomic.hpp \
+  ../depend/mac/include/boost/atomic/detail/storage_type.hpp \
+  ../depend/mac/include/boost/atomic/detail/operations_fwd.hpp \
+  ../depend/mac/include/boost/atomic/detail/ops_gcc_x86_dcas.hpp \
+  ../depend/mac/include/boost/atomic/detail/ops_cas_based.hpp \
+  ../depend/mac/include/boost/atomic/detail/ops_emulated.hpp \
+  ../depend/mac/include/boost/atomic/detail/lockpool.hpp \
+  ../depend/mac/include/boost/atomic/detail/link.hpp \
+  ../depend/mac/include/boost/atomic/atomic_flag.hpp \
+  ../depend/mac/include/boost/atomic/detail/atomic_flag.hpp \
+  ../depend/mac/include/boost/atomic/detail/atomic_template.hpp \
+  ../depend/mac/include/boost/type_traits/is_signed.hpp \
+  ../depend/mac/include/boost/atomic/detail/casts.hpp \
+  ../depend/mac/include/boost/thread/recursive_mutex.hpp \
+  ../depend/mac/include/boost/thread/pthread/recursive_mutex.hpp \
+  ../depend/mac/include/boost/thread/tss.hpp \
+  ../depend/mac/include/boost/thread/locks.hpp \
+  ../depend/mac/include/boost/thread/lock_algorithms.hpp \
   ../depend/mac/include/boost/thread/future.hpp \
   ../depend/mac/include/boost/thread/detail/invoker.hpp \
   ../depend/mac/include/boost/thread/csbl/tuple.hpp \
@@ -766,76 +836,6 @@ dependencies: /Users/linan/MediaKit/Source/MediaCore/AVPipeline.cpp \
   ../depend/mac/include/boost/move/make_unique.hpp \
   ../depend/mac/include/boost/detail/atomic_undef_macros.hpp \
   ../depend/mac/include/boost/detail/atomic_redef_macros.hpp \
-  MediaCore/media/AudioDecodedFrame.h \
-  /Users/linan/MediaKit/Source/MediaCore/base/ImageType.h \
-  /Users/linan/MediaKit/Source/MediaCore/media/PlayControl.h \
-  /Users/linan/MediaKit/Source/MediaCore/timer/SystemClock.h \
-  MediaCore/timer/VirtualClock.h \
-  /Users/linan/MediaKit/Source/MediaCore/sound/SoundHandler.h \
-  MediaCore/sound/InputStream.h MediaCore/sound/AuxStream.h \
-  /Users/linan/MediaKit/Source/MediaCore/sound/sdl/SoundHandlerSDL.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_audio.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_stdinc.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_config.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_platform.h \
-  ../depend/mac/framework/SDL2.framework/Headers/begin_code.h \
-  ../depend/mac/framework/SDL2.framework/Headers/close_code.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_config_macosx.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_error.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_endian.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_mutex.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_thread.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_atomic.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_rwops.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_main.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_assert.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_clipboard.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_cpuinfo.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_events.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_video.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_pixels.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_rect.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_surface.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_blendmode.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_keyboard.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_keycode.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_scancode.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_mouse.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_joystick.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_gamecontroller.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_quit.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_gesture.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_touch.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_filesystem.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_haptic.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_hints.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_loadso.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_log.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_messagebox.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_power.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_render.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_system.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_timer.h \
-  ../depend/mac/framework/SDL2.framework/Headers/SDL_version.h \
-  /Users/linan/MediaKit/Source/MediaCore/timer/SnailSleep.h \
-  /Users/linan/MediaKit/Source/MediaCore/platform/Timer.h \
-  MediaCore/platform/ThreadTimersManager.h \
-  /Users/linan/MediaKit/Source/MediaCore/media/VideoDecoder.h \
-  ../depend/mac/include/boost/thread/condition.hpp \
-  MediaCore/media/MediaDecoderDelegate.h \
-  /Users/linan/MediaKit/Source/MediaCore/media/MediaParserDelegate.h \
-  /Users/linan/MediaKit/Source/MediaCore/media/VideoDecoderDelegate.h \
-  /Users/linan/MediaKit/Source/MediaCore/media/MediaDecoder.h \
-  /Users/linan/MediaKit/Source/MediaCore/network/Url.h \
-  /Users/linan/MediaKit/Source/MediaCore/network/InputStreamProvider.h \
-  MediaCore/network/IOChannel.h MediaCore/network/FileStreamProvider.h \
-  /Users/linan/MediaKit/Source/MediaCore/media/ffmpeg/MediaParserFFmpeg.h \
-  /Users/linan/MediaKit/Source/MediaCore/media/MediaParserBase.h \
-  /Users/linan/MediaKit/Source/MediaCore/platform/PlatformType.h \
-  /Users/linan/MediaKit/Source/MediaCore/media/ffmpeg/VideoDecoderFFmpeg.h \
-  /Users/linan/MediaKit/Source/MediaCore/media/VideoDecodedFrame.h \
-  /Users/linan/MediaKit/Source/MediaCore/media/ffmpeg/AudioDecoderFFmpeg.h \
   /Users/linan/MediaKit/Source/MediaCore/timer/ClockTime.h \
   /Users/linan/MediaKit/Source/MediaCore/base/SnailException.h \
   MediaCore/AVPipelineDelegate.h

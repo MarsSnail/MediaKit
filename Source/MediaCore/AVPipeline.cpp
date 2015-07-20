@@ -177,7 +177,7 @@ void AVPipeline::refreshVideoFrame(bool paused) {
   if (_playHead.isVideoConsumed()) return;
 
   uint64_t curPos = _playHead.getPosition();
-  auto_ptr<VideoImage> videoImage = getDecodedVideoFrame(curPos);
+    boost::shared_ptr<VideoImage> videoImage = _mediaDecoder->GetNextDecodedVideoFrame(curPos);
 
   if (videoImage.get() && _avPipelineDelegate.get()) {
     _avPipelineDelegate->UpdateVideoFrame(videoImage);
@@ -264,54 +264,10 @@ BufferedAudioStreamer::CursoredBuffer* AVPipeline::getNextAudioDecodedFrame() {
   }
   return NULL;
 }
-auto_ptr<VideoImage> AVPipeline::getDecodedVideoFrame(int64_t ts) {
-  assert(_mediaDecoder.get());
-  assert(_mediaParser.get());
-
-  auto_ptr<VideoImage> videoImage;
-  int64_t nextTimestamp;
-  nextTimestamp = _mediaDecoder->nextVideoFrameTimestamp();
-  if (nextTimestamp == -1) {
-    cout << "the next Timestamp is -1" << endl;
-    if (IsParseComplete()) {
-        SetPlayState(PLAY_STATE_OVER);
-    }
-    return videoImage;
-  }
-
-  if (nextTimestamp > ts) {
-    return videoImage;
-  }
-
-  uint64_t prePts = 0;
-  while (1) {
-    videoImage = _mediaDecoder->getVideoImage();
-    std::cout << "drop frames" << _dropedFrameCnt << std::endl;
-    if (!videoImage.get()) {
-      printf("not get the video\n");
-      break;
-    }
-    prePts = nextTimestamp;
-    nextTimestamp = _mediaDecoder->nextVideoFrameTimestamp();
-    if (nextTimestamp == -1) {
-      cout << "nextTimeStamp is -1" << endl;
-      break;
-    }
-    if (nextTimestamp > ts) break;
-
-    _dropedFrameCnt++;
-  }
-
-  return videoImage;
-}
 
 void AVPipeline::SetPlayState(PlayState state) { play_state_ = state; }
 
 PlayState AVPipeline::GetPlayState() { return play_state_; }
-
-auto_ptr<AVPacket> AVPipeline::nextVideoEncodedFrame() {
-  return _mediaParser->GetNextEncodedVideoFrame();
-}
 
 // Utilies for control MediaParser
 /***********Utilies for Mediaparser**************************/
@@ -328,6 +284,10 @@ bool AVPipeline::CreateMediaParser(std::string url,
 bool AVPipeline::IsParseComplete() {
   return _parserState == PARSER_STATE_COMPLETE;
 }
+    
+    void AVPipeline::NotifyMediaDecodeComplete(){
+        decode_complete_ = true;
+    }
 
 /****************end*******************/
 
@@ -342,11 +302,9 @@ void AVPipeline::SetMediaParserState(const MediaParserState& state) {
   std::cout << "Ge MediaParser State" << std::endl;
 }
 
-auto_ptr<AVPacket> AVPipeline::GetNextEncodedVideoFrame() {
+    boost::shared_ptr<EncodedAVFrame> AVPipeline::GetNextEncodedVideoFrame() {
   return _mediaParser->GetNextEncodedVideoFrame();
 }
-
-MediaParserState AVPipeline::GetMediaParserState() { return _parserState; }
 
 double AVPipeline::GetVideoTimeBase() {
   return av_q2d(_mediaInfo._videoTimeBase);
@@ -356,7 +314,7 @@ double AVPipeline::GetAudioTimeBase() {
   return av_q2d(_mediaInfo._audioTimeBase);
 }
 
-auto_ptr<AVPacket> AVPipeline::GetNextEncodedAudioFrame() {
+    boost::shared_ptr<AVPacket> AVPipeline::GetNextEncodedAudioFrame() {
   return _mediaParser->GetNextEncodedAudioFrame();
 }
 /*-------------------------bufferedAudioStreamer---------------------*/

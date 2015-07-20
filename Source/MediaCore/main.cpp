@@ -35,7 +35,7 @@ void init();
 void setShader();
 void display();
 void reshape(int w, int h);
-void updateTexture(std::auto_ptr<VideoImage> image);
+void updateTexture(boost::shared_ptr<VideoImage> image);
 void xcb(){
 	glutPostRedisplay();
 }
@@ -103,7 +103,7 @@ GLuint texname[3];
 #else
 GLuint texname;
 #endif
-void initTexture(std::auto_ptr<VideoImage> image){
+void initTexture(boost::shared_ptr<VideoImage> image){
 #ifdef USE_YUV
 	glGenTextures(3, texname);
 #else
@@ -184,7 +184,7 @@ void init(void){
 void display(void){
 	glClear(GL_COLOR_BUFFER_BIT);
 	glColor3f(1.0, 1.0, 1.0);
-	std::auto_ptr<VideoImage> videoFrame;
+    boost::shared_ptr<VideoImage> videoFrame;
 	mediaKit.beginDisplay();
 	videoFrame = pipelineDelegate->GetVideoImage();
 	if(videoFrame.get()){
@@ -217,7 +217,7 @@ void reshape(int w, int h){
 	glLoadIdentity();
 }
 
-void updateTexture(std::auto_ptr<VideoImage> image){
+void updateTexture(boost::shared_ptr<VideoImage> image){
 	if(!hasInitTex){
 		initTexture(image);
 		hasInitTex = true;

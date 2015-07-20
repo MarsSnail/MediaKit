@@ -43,7 +43,7 @@ public:
 	
 	virtual ~VideoDecoderFFmpeg() override;
 	virtual bool Init() override;
-	virtual auto_ptr<VideoImage> getVideoImage() override;
+    virtual boost::shared_ptr<VideoImage> getVideoImage() override;
 	virtual int64_t nextVideoFrameTimestamp() override;
 	virtual void clearVideoFrameQueue() override;
 	virtual int videoFrameQueueLength() override;

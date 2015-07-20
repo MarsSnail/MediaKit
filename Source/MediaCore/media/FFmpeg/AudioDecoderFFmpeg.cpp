@@ -27,7 +27,7 @@
 namespace MediaCore {
     
     AudioDecoderFFmpeg::AudioDecoderFFmpeg(MediaDecoderDelegate *delegate):
-    AudioDecoder(delegate),
+    _media_decoder_delegate(delegate),
     _swrCtx(0),
     _audioTimeBase(0){
         if(!init()){
@@ -37,10 +37,7 @@ namespace MediaCore {
     }
     AudioDecoderFFmpeg::~AudioDecoderFFmpeg(){
         cout<<"in the function ~AudioDecoderFFmpeg"<<endl;
-        setKillThread();
         clearAudioFrameQueue();
-        _audioDecoderThread->join();
-        _audioDecoderThread.reset();
         if(_swrCtx){
             swr_free(&_swrCtx);
         }
@@ -49,7 +46,7 @@ namespace MediaCore {
     bool AudioDecoderFFmpeg::init(){
         _audioCodecCtx = global_getAudioCtx();
         _audioCodec = global_getAudioCodec();
-        _audioTimeBase = delegate_->GetAudioTimeBase();
+        _audioTimeBase = _media_decoder_delegate->GetAudioTimeBase();
         if(!_audioCodecCtx || !_audioCodec || !_audioTimeBase){
             return false;
         }else
@@ -107,11 +104,11 @@ namespace MediaCore {
     void AudioDecoderFFmpeg::decodeAudioFrame(){
         if(IsBufferFull())
             return ;
-        auto_ptr<AVPacket> pkt = delegate_->GetNextEncodedAudioFrame();
+        boost::shared_ptr<AVPacket> pkt = _media_decoder_delegate->GetNextEncodedAudioFrame();
         
         if(!pkt.get() || !pkt->buf->buffer){
             //when play over if as not call the close then block the video Decoder thread
-            if(delegate_->IsParseComplete()){
+            if(_media_decoder_delegate->IsParseComplete()){
                 boost::mutex::scoped_lock lock(queueMutex);
                 cout<<"now parsed completely and the audio Packet queue is empty,so block the audio decoder Thread"<<endl;
                 _decoderThreadWakeup.wait(lock);

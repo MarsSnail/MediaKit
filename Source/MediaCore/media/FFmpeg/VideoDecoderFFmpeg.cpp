@@ -25,7 +25,6 @@
 #include "AVPipeline.h"
 #include "SnailException.h"
 #include "MediaParserFFmpeg.h"
-#include "VideoDecoderDelegate.h"
 
 using namespace std;
 
@@ -75,7 +74,7 @@ namespace MediaCore {
             return false;
         if(IsBufferFull())
             return false;
-        auto_ptr<AVPacket> pkt = delegate_->GetNextEncodedVideoFrame();
+        boost::shared_ptr<AVPacket> pkt = delegate_->GetNextEncodedVideoFrame();
         
         if(!pkt.get()){
             if(delegate_->IsParseComplete()){
@@ -303,9 +302,9 @@ namespace MediaCore {
         return reImage;
         
     }
-    auto_ptr<VideoImage> VideoDecoderFFmpeg::getVideoImage()  {
+    boost::shared_ptr<VideoImage> VideoDecoderFFmpeg::getVideoImage()  {
         
-        auto_ptr<VideoImage> reImage;
+        boost::shared_ptr<VideoImage> reImage;
         VideoDecodedFrame * nextFrame = popDecodedVideoFrame();
         if(nextFrame){
             reImage.reset(nextFrame->getImage());

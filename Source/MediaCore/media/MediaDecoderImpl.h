@@ -18,13 +18,12 @@ namespace MediaCore{
         MediaDecoderImpl(MediaDecoderDelegate* delegate);
         ~MediaDecoderImpl();
         virtual bool Init() override;
-        virtual boost::shared_ptr<VideoDecodedFrame> GetNextDecodedVideoFrame(int64_t timestamp) override;
+        virtual boost::shared_ptr<VideoImage> GetNextDecodedVideoFrame(int64_t timestamp) override;
         virtual boost::shared_ptr<AudioDecodedFrame> GetNextDecodedAudioFrame(int64_t timestamp) override;
         virtual void ClearDeocdedFrameBuffer();
         
         //temp interface
         virtual int videoFrameQueueLength();
-        virtual auto_ptr<VideoImage> getVideoImage();
         virtual int64_t nextVideoFrameTimestamp();
         virtual AudioDecodedFrame* popAudioDecodedFrame();
         virtual int64_t nextAudioFrameTimestamp();

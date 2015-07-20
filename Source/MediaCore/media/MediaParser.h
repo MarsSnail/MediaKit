@@ -8,8 +8,8 @@ class MediaParser{
 public:
 	virtual ~MediaParser(){}
 	virtual bool Init()						= 0;
-	virtual std::auto_ptr<EncodedAVFrame> GetNextEncodedVideoFrame() = 0;
-	virtual std::auto_ptr<EncodedAVFrame> GetNextEncodedAudioFrame() = 0;
+    virtual boost::shared_ptr<EncodedAVFrame> GetNextEncodedVideoFrame() = 0;
+    virtual boost::shared_ptr<EncodedAVFrame> GetNextEncodedAudioFrame() = 0;
 	virtual uint64_t GetByteLoaded() const  = 0;
 	virtual void 	 PauseMediaParser() 	= 0;
 	virtual void 	 ContinueMediaParser() 	= 0;

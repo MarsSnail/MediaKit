@@ -2,15 +2,16 @@
 #define AV_PIPELINE_VIDEO_DELEGATE_H
 
 #include "ImageType.h"
+#include "boost/shared_ptr.hpp"
 
 namespace MediaCore{
 
 class AVPipelineDelegate{
 public:
-	void UpdateVideoFrame(std::auto_ptr<VideoImage> videoImage) { _videoImage = videoImage;}
-	std::auto_ptr<VideoImage> GetVideoImage() {return _videoImage;}
+    void UpdateVideoFrame(boost::shared_ptr<VideoImage> videoImage) { _videoImage = videoImage;}
+    boost::shared_ptr<VideoImage> GetVideoImage() {return _videoImage;}
 private:
-	std::auto_ptr<VideoImage>  _videoImage;
+    boost::shared_ptr<VideoImage>  _videoImage;
 };
 
 } //namespace MediaCore

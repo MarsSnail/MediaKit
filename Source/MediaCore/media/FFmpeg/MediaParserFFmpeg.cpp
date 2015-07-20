@@ -544,9 +544,9 @@ void MediaParserFFmpeg::ContinueMediaParser() {
   ContinueMediaParserAction();
 }
 
-auto_ptr<AVPacket> MediaParserFFmpeg::GetNextEncodedAudioFrame() {
+    boost::shared_ptr<AVPacket> MediaParserFFmpeg::GetNextEncodedAudioFrame() {
   boost::mutex::scoped_lock lock(_mutexAudioQueue);
-  auto_ptr<AVPacket> result;
+        boost::shared_ptr<AVPacket> result;
   if (_audioPacketsQueue.empty()) {
     // do nothing here
   } else {
@@ -560,9 +560,9 @@ auto_ptr<AVPacket> MediaParserFFmpeg::GetNextEncodedAudioFrame() {
   ResumeMediaParserIfNeeded();
   return result;
 }
-auto_ptr<AVPacket> MediaParserFFmpeg::GetNextEncodedVideoFrame() {
+boost::shared_ptr<AVPacket> MediaParserFFmpeg::GetNextEncodedVideoFrame() {
   boost::mutex::scoped_lock lock(_mutexVideoQueue);
-  auto_ptr<AVPacket> result;
+    boost::shared_ptr<AVPacket> result;
   if (_videoPacketsQueue.empty()) {
     // do noting here
   } else {

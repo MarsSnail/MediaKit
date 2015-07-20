@@ -45,7 +45,7 @@ public:
     static VideoDecoder* CreateVideoDecoder(MediaDecoderDelegate* delegate);
     virtual  ~VideoDecoder(){}
 	virtual bool Init() = 0;
-	virtual auto_ptr<VideoImage> getVideoImage() = 0;
+    virtual boost::shared_ptr<VideoImage> getVideoImage() = 0;
 	virtual int64_t nextVideoFrameTimestamp() = 0;
     virtual VideoDecodedFrame* GetDecodedVideoFrame(int64_t timestamp) = 0;
 	virtual void clearVideoFrameQueue() = 0;

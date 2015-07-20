@@ -5,6 +5,7 @@
 #include "VideoDecoderFFmpeg.h"
 
 namespace MediaCore{
+    class VideoImage;
     
     //static
     MediaDecoder* MediaDecoder::CreateMediaDecoder(MediaCore::MediaDecoderDelegate *delegate){
@@ -34,15 +35,42 @@ namespace MediaCore{
         return true;
     }
     
-    boost::shared_ptr<VideoDecodedFrame> MediaDecoderImpl::GetNextDecodedVideoFrame(int64_t timestamp){
+    boost::shared_ptr<VideoImage> MediaDecoderImpl::GetNextDecodedVideoFrame(int64_t timestamp){
         boost::shared_ptr<VideoDecodedFrame> result;
-        VideoDecodedFrame* video_decoded_frame = video_decoder_->GetDecodedVideoFrame(timestamp);
-        if(video_decoded_frame != 0)
-            result.reset(video_decoded_frame);
+        
+        static unsigned long droped_frame_count = 0;
+        boost::shared_ptr<VideoImage> videoImage;
+        int64_t nextTimestamp;
+        nextTimestamp = nextVideoFrameTimestamp();
+        if (nextTimestamp == -1 && delegate_->IsParseComplete()) {
+            delegate_->NotifyMediaDecodeComplete();
+        }
+        
+        if (nextTimestamp > timestamp) {
+            return videoImage;
+        }
+        
+        uint64_t prePts = 0;
+        while (1) {
+            videoImage = video_decoder_->getVideoImage();
+            std::cout << "drop frames" << ++droped_frame_count << std::endl;
+            if (!videoImage.get()) {
+                printf("not get the video\n");
+                break;
+            }
+            prePts = nextTimestamp;
+            nextTimestamp = video_decoder_->nextVideoFrameTimestamp();
+            if (nextTimestamp == -1) {
+                cout << "nextTimeStamp is -1" << endl;
+                break;
+            }
+            if (nextTimestamp > timestamp) break;
+            
+        }
         
         ResumeDecoderIfNeeded();
         
-        return result;
+        return videoImage;
     }
     
     boost::shared_ptr<AudioDecodedFrame> MediaDecoderImpl::GetNextDecodedAudioFrame(int64_t timestamp){
@@ -64,10 +92,6 @@ namespace MediaCore{
     //temp interface
     int MediaDecoderImpl::videoFrameQueueLength(){
         return video_decoder_->videoFrameQueueLength();
-    }
-    
-    auto_ptr<VideoImage> MediaDecoderImpl::getVideoImage(){
-        return video_decoder_->getVideoImage();
     }
     
     int64_t MediaDecoderImpl::nextVideoFrameTimestamp(){

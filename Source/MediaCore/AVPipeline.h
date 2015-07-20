@@ -40,149 +40,143 @@
 #include "Timer.h"
 #include "VideoDecoder.h"
 #include "MediaParserDelegate.h"
-#include "VideoDecoderDelegate.h"
 #include "MediaDecoderDelegate.h"
 #include "MediaDecoder.h"
 
 namespace MediaCore {
-
-class AVPipelineDelegate;
-
-/*this class you create passing a sound handler, which will be used to
- * Implement attach/detach and eventally throw away buffers of sound
- * when no sound handler is given
- */
-class BufferedAudioStreamer {
- public:
-  BufferedAudioStreamer();
-  void setSoundHandler(SoundHandler *);
-
-  // A Buffer with a cursor state
-  class CursoredBuffer {
-   public:
-    CursoredBuffer() : _size(0), _data(NULL), _ptr(NULL) {}
-    ~CursoredBuffer() { delete[] _data; }
-
-    // number of smaples left in buffer starting from cursor
-    uint32_t _size;
-    // the data must be allocated with new [] as will be delete []
-    uint8_t *_data;
-    uint8_t *_ptr;  // cursor into the data
-  };
-
-  // typedef boost::ptr_deque<CursoredBuffer> AudioQueue;
-  typedef deque<CursoredBuffer *> AudioQueue;
-
-  void cleanAudioQueue();
-  SoundHandler
-      *_soundHandler;  // this object only exist one instance int the pid
-  AudioQueue _audioQueue;
-  // bytes in the audioQueue
-  size_t _audioQueueSize;
-  boost::mutex _audioQueueMutex;
-  // id of an attached audio streamer, 0 if none
-  InputStream *_auxStreamer;
-  // on success, _auxStreamerAttached will be set to true.
-  // won't attach again if already attached.
-  void attachAuxStreamer();
-  void detachAuxStreamer();
-
-  // fetch samples from the audio queue
-  uint16_t fetch(int16_t *samples, uint16_t nSamples, bool &eof);
-  static uint16_t fetchWrapper(void *owner, int16_t *samples, uint16_t nSamples,
-                               bool &eof);
-  void push(CursoredBuffer *audio);
-};
-class AVPipeline : public MediaParserDelegate,
-                   public VideoDecoderDelegate,
-                   public MediaDecoderDelegate {
- public:
-  AVPipeline();
-  ~AVPipeline();
-
-  void Init();
-  void Reset();
-  void SetDelegate(boost::shared_ptr<AVPipelineDelegate> avPipelineDelegate);
-  void PostTask(AsyncTask task);
-  void beginDisplay();
-
-  // play control func
-  bool startPlayback(string url = "bt://bt");
-  void Seek(int32_t secPos);
-  void pause();
-  void resume();
-
-  // utils functions for get MediaParser info
-  bool IsParseComplete();
-
-  // MediaParserDelegate implementation
-  virtual void SetMediaInfo(const MediaInfo &mediaInfo) override;
-  virtual void SetMediaParserState(const MediaParserState &state) override;
-  // VideoDecoderDelegate implementation
-  virtual auto_ptr<AVPacket> GetNextEncodedVideoFrame() override;
-  virtual MediaParserState GetMediaParserState() override;
-  virtual double GetVideoTimeBase() override;
-  virtual double GetAudioTimeBase() override;
-
-  auto_ptr<EncodedAVFrame> GetNextEncodedAudioFrame();
-
-  // test Async Task Module
-  void AsyncTaskTest();
-  void TestFunc();
-
- private:
-  // utils
-  bool CreateMediaParser(std::string url, MediaParserDelegate *delegate);
-  bool CreateMediaDecoder();
-
-  void PlaybackAction(string url);
-  void SeekAction(int32_t pos);
-  void PauseAction();
-
-  void SetPlayState(PlayState state);
-  PlayState GetPlayState();
-
-  void refreshVideoFrame(bool paused = false);
-  void refreshAudioFrame(bool paused = false);
-  auto_ptr<AVPacket> nextVideoEncodedFrame();
-  auto_ptr<VideoImage> getDecodedVideoFrame(int64_t ts);
-  void pushDecodedAudioFrames(int64_t ts);
-  BufferedAudioStreamer::CursoredBuffer *getNextAudioDecodedFrame();
-  uint64_t GetStartPlayTimestamp();
-
-  boost::scoped_ptr<MediaParser> _mediaParser;
-  boost::scoped_ptr<MediaDecoder> _mediaDecoder;
-  static boost::scoped_ptr<MediaCore::SoundHandler> _soundHandler;
-  SystemClock _sysClock;
-  MediaCore::InterruptableVirtualClock _playbackClock;
-  PlayControl _playHead;
-
-  MediaInfo _mediaInfo;
-  MediaParserState _parserState;
-
-  // the time of lenght that bufferd video or audio packets
-  uint32_t _bufferTime;
-  PlayState play_state_;
-
-  // process audio data
-  BufferedAudioStreamer _audioStreamer;
-  string _url;
-  int _dropedFrameCnt;
-  bool _seekFlag;
-  bool _seekFlagForRefresh;
-  int _id;
-  // when as call Close() function(this function wiil destruct the _aduioDecoder
-  // ..),
-  // but the beginDisplay is excutting ,,it will use the _audioDecoder.so this
-  // will cause the crash
-  boost::mutex _mutex;
-  int64_t _seekPos;
-  boost::shared_ptr<AVPipelineDelegate> _avPipelineDelegate;
-  boost::scoped_ptr<boost::thread> _task_thread;
-  boost::scoped_ptr<boost::asio::io_service::work> _io_service_work;
-  boost::scoped_ptr<boost::asio::io_service> _io_service;
-};
-
+    
+    class AVPipelineDelegate;
+    
+    /*this class you create passing a sound handler, which will be used to
+     * Implement attach/detach and eventally throw away buffers of sound
+     * when no sound handler is given
+     */
+    class BufferedAudioStreamer {
+    public:
+        BufferedAudioStreamer();
+        void setSoundHandler(SoundHandler *);
+        
+        // A Buffer with a cursor state
+        class CursoredBuffer {
+        public:
+            CursoredBuffer() : _size(0), _data(NULL), _ptr(NULL) {}
+            ~CursoredBuffer() { delete[] _data; }
+            
+            // number of smaples left in buffer starting from cursor
+            uint32_t _size;
+            // the data must be allocated with new [] as will be delete []
+            uint8_t *_data;
+            uint8_t *_ptr;  // cursor into the data
+        };
+        
+        // typedef boost::ptr_deque<CursoredBuffer> AudioQueue;
+        typedef deque<CursoredBuffer *> AudioQueue;
+        
+        void cleanAudioQueue();
+        SoundHandler
+        *_soundHandler;  // this object only exist one instance int the pid
+        AudioQueue _audioQueue;
+        // bytes in the audioQueue
+        size_t _audioQueueSize;
+        boost::mutex _audioQueueMutex;
+        // id of an attached audio streamer, 0 if none
+        InputStream *_auxStreamer;
+        // on success, _auxStreamerAttached will be set to true.
+        // won't attach again if already attached.
+        void attachAuxStreamer();
+        void detachAuxStreamer();
+        
+        // fetch samples from the audio queue
+        uint16_t fetch(int16_t *samples, uint16_t nSamples, bool &eof);
+        static uint16_t fetchWrapper(void *owner, int16_t *samples, uint16_t nSamples,
+                                     bool &eof);
+        void push(CursoredBuffer *audio);
+    };
+    class AVPipeline : public MediaParserDelegate,
+    public MediaDecoderDelegate {
+    public:
+        AVPipeline();
+        ~AVPipeline();
+        
+        void Init();
+        void Reset();
+        void SetDelegate(boost::shared_ptr<AVPipelineDelegate> avPipelineDelegate);
+        void PostTask(AsyncTask task);
+        void beginDisplay();
+        
+        // play control func
+        bool startPlayback(string url = "bt://bt");
+        void Seek(int32_t secPos);
+        void pause();
+        void resume();
+        
+        // MediaParserDelegate implementation
+        virtual void SetMediaInfo(const MediaInfo &mediaInfo) override;
+        virtual void SetMediaParserState(const MediaParserState &state) override;
+        
+        // MediaDecoderDelegate implementation
+        virtual boost::shared_ptr<EncodedAVFrame> GetNextEncodedVideoFrame() override;
+        virtual boost::shared_ptr<EncodedAVFrame> GetNextEncodedAudioFrame() override;
+        virtual double GetVideoTimeBase() override;
+        virtual double GetAudioTimeBase() override;
+        virtual bool IsParseComplete() override;
+        virtual void NotifyMediaDecodeComplete() override;
+        
+        // test Async Task Module
+        void AsyncTaskTest();
+        void TestFunc();
+        
+    private:
+        // utils
+        bool CreateMediaParser(std::string url, MediaParserDelegate *delegate);
+        bool CreateMediaDecoder();
+        
+        void PlaybackAction(string url);
+        void SeekAction(int32_t pos);
+        void PauseAction();
+        
+        void SetPlayState(PlayState state);
+        PlayState GetPlayState();
+        
+        void refreshVideoFrame(bool paused = false);
+        void refreshAudioFrame(bool paused = false);
+        void pushDecodedAudioFrames(int64_t ts);
+        BufferedAudioStreamer::CursoredBuffer *getNextAudioDecodedFrame();
+        uint64_t GetStartPlayTimestamp();
+        
+        boost::scoped_ptr<MediaParser> _mediaParser;
+        boost::scoped_ptr<MediaDecoder> _mediaDecoder;
+        static boost::scoped_ptr<MediaCore::SoundHandler> _soundHandler;
+        SystemClock _sysClock;
+        MediaCore::InterruptableVirtualClock _playbackClock;
+        PlayControl _playHead;
+        
+        MediaInfo _mediaInfo;
+        MediaParserState _parserState;
+        
+        // the time of lenght that bufferd video or audio packets
+        uint32_t _bufferTime;
+        PlayState play_state_;
+        bool decode_complete_;
+        // process audio data
+        BufferedAudioStreamer _audioStreamer;
+        string _url;
+        int _dropedFrameCnt;
+        bool _seekFlag;
+        bool _seekFlagForRefresh;
+        int _id;
+        // when as call Close() function(this function wiil destruct the _aduioDecoder
+        // ..),
+        // but the beginDisplay is excutting ,,it will use the _audioDecoder.so this
+        // will cause the crash
+        boost::mutex _mutex;
+        int64_t _seekPos;
+        boost::shared_ptr<AVPipelineDelegate> _avPipelineDelegate;
+        boost::scoped_ptr<boost::thread> _task_thread;
+        boost::scoped_ptr<boost::asio::io_service::work> _io_service_work;
+        boost::scoped_ptr<boost::asio::io_service> _io_service;
+    };
+    
 }  // namespace
 
 #endif /* PLAYERSTREAM_H_ */

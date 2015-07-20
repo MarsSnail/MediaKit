@@ -3,7 +3,7 @@ dependencies: \
   MediaCore/media/ffmpeg/AudioDecoderFFmpeg.h \
   /Users/linan/MediaKit/Source/MediaCore/base/SnailConfig.h \
   /Users/linan/MediaKit/Source/MediaCore/media/AudioDecoder.h \
-  MediaCore/media/MediaParser.h \
+  /Users/linan/MediaKit/Source/MediaCore/media/MediaParser.h \
   /Users/linan/MediaKit/Source/MediaCore/base/CommonDef.h \
   ../depend/mac/include/boost/function.hpp \
   ../depend/mac/include/boost/preprocessor/iterate.hpp \
@@ -695,7 +695,6 @@ dependencies: \
   ../depend/mac/include/boost/move/make_unique.hpp \
   ../depend/mac/include/boost/detail/atomic_undef_macros.hpp \
   ../depend/mac/include/boost/detail/atomic_redef_macros.hpp \
-  MediaCore/media/AudioDecodedFrame.h \
   ../depend/mac/include/boost/thread/condition.hpp \
   MediaCore/media/ffmpeg/MediaParserFFmpeg.h \
   /Users/linan/MediaKit/Source/MediaCore/media/MediaParserBase.h \
@@ -833,6 +832,6 @@ dependencies: \
   /Users/linan/MediaKit/Source/MediaCore/platform/Timer.h \
   MediaCore/platform/ThreadTimersManager.h \
   /Users/linan/MediaKit/Source/MediaCore/media/VideoDecoder.h \
+  MediaCore/media/AudioDecodedFrame.h \
   MediaCore/media/MediaDecoderDelegate.h \
-  /Users/linan/MediaKit/Source/MediaCore/media/VideoDecoderDelegate.h \
   /Users/linan/MediaKit/Source/MediaCore/media/MediaDecoder.h
