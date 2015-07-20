@@ -58,6 +58,12 @@ Source/MediaCore/a.out
 
 Source/build/mediacore.build/Debug/All.build/dgph
 
-Source/build/
+Source/build
 
-Source/mediacore.xcodeproj/
+Source/mediacore.xcodeproj
+
+Source/build/Debug/MediaKiteDemo
+
+Source/build/Debug/libmediacore.dylib
+
+Source/build/Debug/MediaKiteDemo
